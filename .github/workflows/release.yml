@@ -143,9 +143,11 @@ jobs:
             tag="$INPUT_TAG"
           else
             # Automatic release (push to my-main or manual run without a tag).
-            # Reuse a release tag already on this commit, otherwise take the next free number.
+            # Reuse a fork release tag already on this commit, otherwise take the next free number.
+            # Only -fork.<n> tags count: forks also carry upstream's own tags (e.g. v1.2.0), and
+            # the fork's build must never be published under one of those.
             git fetch --tags --force --quiet origin || true
-            tag="$(git tag --points-at HEAD --list 'v*' | head -n1)"
+            tag="$(git tag --points-at HEAD --list 'v*-fork.*' | head -n1)"
             if [ -z "$tag" ]; then
               n=1
               while git rev-parse -q --verify "refs/tags/v${VERSION}-fork.${n}" >/dev/null; do
