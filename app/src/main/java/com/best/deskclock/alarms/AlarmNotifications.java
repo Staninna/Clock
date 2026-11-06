@@ -6,6 +6,7 @@
 
 package com.best.deskclock.alarms;
 
+import static com.best.deskclock.DeskClockApplication.getDefaultSharedPreferences;
 import static com.best.deskclock.settings.PreferencesDefaultValues.ALARM_SNOOZE_DURATION_DISABLED;
 import static com.best.deskclock.utils.NotificationUtils.ALARM_MISSED_NOTIFICATION_CHANNEL_ID;
 import static com.best.deskclock.utils.NotificationUtils.ALARM_SNOOZE_NOTIFICATION_CHANNEL_ID;
@@ -437,6 +438,11 @@ public final class AlarmNotifications {
         PendingIntent contentIntent = PendingIntent.getActivity(context, ALARM_FIRING_NOTIFICATION_ID,
             viewAlarmIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        // When a math challenge is required, the alarm can only be snoozed or dismissed from the
+        // alarm screen: the notification has no snooze/dismiss actions, and swiping it away
+        // (possible for ongoing notifications since Android 14) just shows it again.
+        final boolean hasMathMission = AlarmUtils.hasMathMission(getDefaultSharedPreferences(context), alarm);
+
         // Setup up dismiss action
         Intent dismissIntent = AlarmStateManager.createStateChangeIntent(
             context, instance, AlarmStateManager.ALARM_DISMISS_TAG, AlarmInstance.DISMISSED_STATE, globalIntentId);
@@ -444,11 +450,19 @@ public final class AlarmNotifications {
         PendingIntent dismissPendingIntent = PendingIntent.getService(context,
             ALARM_FIRING_NOTIFICATION_ID, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        PendingIntent deletePendingIntent = dismissPendingIntent;
+        if (hasMathMission) {
+            Intent repostIntent = AlarmInstance.createIntent(context, AlarmService.class, instance.mId)
+                .setAction(AlarmService.ALARM_REPOST_NOTIFICATION_ACTION);
+            deletePendingIntent = PendingIntent.getService(context, ALARM_FIRING_NOTIFICATION_ID, repostIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        }
+
         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, FIRING_NOTIFICATION_CHANNEL_ID)
             .setContentTitle(instance.getLabelOrDefault(localizedContext))
             .setContentText(AlarmUtils.getFormattedTime(localizedContext, instance.getAlarmTime()))
             .setContentIntent(contentIntent)
-            .setDeleteIntent(dismissPendingIntent)
+            .setDeleteIntent(deletePendingIntent)
             .setColor(ContextCompat.getColor(context, R.color.notificationColor))
             .setSmallIcon(R.drawable.ic_tab_alarm_static)
             .setOngoing(true)
@@ -462,7 +476,7 @@ public final class AlarmNotifications {
 
         // Setup Snooze Action only if snooze duration has NOT been set to "None" in the settings
         // or if "Enable alarm snooze actions" is enabled in the alarm editing panel.
-        if (instance.mSnoozeDuration != ALARM_SNOOZE_DURATION_DISABLED) {
+        if (!hasMathMission && instance.mSnoozeDuration != ALARM_SNOOZE_DURATION_DISABLED) {
             Intent snoozeIntent = AlarmStateManager.createStateChangeIntent(
                 context, instance, AlarmStateManager.ALARM_SNOOZE_TAG, AlarmInstance.SNOOZE_STATE, globalIntentId);
             snoozeIntent.putExtra(AlarmStateManager.FROM_NOTIFICATION_EXTRA, true);
@@ -473,7 +487,9 @@ public final class AlarmNotifications {
             notification.addAction(R.drawable.ic_snooze, localizedContext.getString(R.string.alarm_alert_snooze_text), snoozePendingIntent);
         }
 
-        notification.addAction(R.drawable.ic_alarm_off, dismissActionTitle, dismissPendingIntent);
+        if (!hasMathMission) {
+            notification.addAction(R.drawable.ic_alarm_off, dismissActionTitle, dismissPendingIntent);
+        }
 
         // Setup fullscreen intent
         Intent fullScreenIntent = AlarmInstance.createIntent(context, AlarmActivity.class, instance.mId);

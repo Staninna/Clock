@@ -702,7 +702,6 @@
     <string name="math_challenge_title_dismiss">Vyřešte pro ukončení</string>
     <string name="math_challenge_new_problem">Nový problém</string>
     <string name="math_challenge_answer_hint">Vaše odpověď</string>
-    <string name="math_challenge_prompt">Kolik je %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Nesprávná odpověď</string>
     <string name="math_challenge_category_title">Matematická úloha</string>
     <string name="math_hardness_level_title">Úroveň obtížnosti matematiky</string>

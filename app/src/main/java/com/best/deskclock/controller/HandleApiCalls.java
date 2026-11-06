@@ -187,6 +187,12 @@ public class HandleApiCalls extends Activity {
 
         final String time = timeFormat.format(instance.getAlarmTime().getTime());
 
+        if (instance.mAlarmState == FIRED_STATE && AlarmUtils.hasMathMission(appContext, prefs, instance)) {
+            // A ringing alarm that requires a math challenge can only be stopped from the alarm screen.
+            notifyMathChallengeRequired(context, instance);
+            return;
+        }
+
         if (instance.mAlarmState == FIRED_STATE || instance.mAlarmState == SNOOZE_STATE) {
             // Always dismiss alarms that are fired or snoozed.
             AlarmStateManager.deleteInstanceAndUpdateParent(appContext, prefs, instance, true);
@@ -211,7 +217,15 @@ public class HandleApiCalls extends Activity {
         Events.sendAlarmEvent(R.string.action_dismiss, R.string.label_intent);
     }
 
-    private static boolean isAlarmWithin24Hours(@NonNull AlarmInstance alarmInstance) {
+    private static void notifyMathChallengeRequired(@NonNull Context context, @NonNull AlarmInstance instance) {
+        final String reason = context.getString(R.string.alarm_math_challenge_required);
+        if (context instanceof Activity activity) {
+            Controller.getController().notifyVoiceFailure(activity, reason);
+        }
+        LOGGER.i("Math challenge required, ignoring API request for alarm: " + instance);
+    }
+
+        private static boolean isAlarmWithin24Hours(@NonNull AlarmInstance alarmInstance) {
         final Calendar nextAlarmTime = alarmInstance.getAlarmTime();
         final long nextAlarmTimeMillis = nextAlarmTime.getTimeInMillis();
         return nextAlarmTimeMillis - System.currentTimeMillis() <= DateUtils.DAY_IN_MILLIS;
@@ -307,6 +321,12 @@ public class HandleApiCalls extends Activity {
 
         java.text.DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(activity);
         timeFormat.setTimeZone(alarmInstance.getTimeZone());
+
+        if (AlarmUtils.hasMathMission(activity, prefs, alarmInstance)) {
+            // A ringing alarm that requires a math challenge can only be snoozed from the alarm screen.
+            notifyMathChallengeRequired(activity, alarmInstance);
+            return;
+        }
 
         final String time = timeFormat.format(alarmInstance.getAlarmTime().getTime());
         final String reason = activity.getString(R.string.alarm_is_snoozed, time);

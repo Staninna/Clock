@@ -40,6 +40,7 @@ import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.events.Events;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.ringtone.RingtonePlayer;
+import com.best.deskclock.utils.AlarmUtils;
 import com.best.deskclock.utils.DeviceUtils;
 import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.SdkUtils;
@@ -82,6 +83,12 @@ public class AlarmService extends Service {
      * A private action sent by AlarmService when the alarm has started.
      */
     private static final String ALARM_ALERT_ACTION = "com.best.deskclock.ALARM_ALERT";
+
+    /**
+     * Action used to show the firing notification again when the user swipes it away while a
+     * math challenge is required, so the alarm can't be dismissed by clearing the notification.
+     */
+    public static final String ALARM_REPOST_NOTIFICATION_ACTION = "com.best.deskclock.ALARM_REPOST_NOTIFICATION";
 
     /**
      * A public action sent by AlarmService when the alarm has stopped for any reason.
@@ -172,6 +179,12 @@ public class AlarmService extends Service {
 
             if (mIsBound) {
                 LogUtils.i("AlarmActivity bound; AlarmService no-op");
+                return;
+            }
+
+            if ((ALARM_SNOOZE_ACTION.equals(action) || ALARM_DISMISS_ACTION.equals(action))
+                && AlarmUtils.hasMathMission(context, mPrefs, mCurrentAlarm)) {
+                LogUtils.i("Math challenge required; ignoring %s", action);
                 return;
             }
 
@@ -516,6 +529,15 @@ public class AlarmService extends Service {
                 stopAlarmKlaxon();
                 stopFlash();
             }
+
+            case ALARM_REPOST_NOTIFICATION_ACTION -> {
+                if (mCurrentAlarm != null && mCurrentAlarm.mId == instanceId
+                    && mCurrentAlarm.mAlarmState == AlarmInstance.FIRED_STATE) {
+
+                    AlarmNotifications.showAlarmNotification(
+                        this, mCurrentAlarm, SettingsDAO.getLanguageCode(mPrefs), SettingsDAO.getGlobalIntentId(mPrefs));
+                }
+            }
         }
 
         return Service.START_NOT_STICKY;
@@ -777,6 +799,20 @@ public class AlarmService extends Service {
     }
 
     private void handleAction(int action) {
+        if ((action == ALARM_SNOOZE || action == ALARM_DISMISS) && mCurrentAlarm != null
+            && AlarmUtils.hasMathMission(this, mPrefs, mCurrentAlarm)) {
+
+            // A math challenge is required: flipping or shaking the device must not snooze or
+            // dismiss the alarm directly. If the alarm screen is shown, ask it to open the challenge.
+            if (mIsBound) {
+                final Intent requestIntent = new Intent(action == ALARM_SNOOZE ? ALARM_SNOOZE_ACTION : ALARM_DISMISS_ACTION);
+                requestIntent.setPackage(getPackageName());
+                sendBroadcast(requestIntent);
+            }
+
+            return;
+        }
+
         switch (action) {
             case ALARM_SNOOZE ->
                 startService(AlarmStateManager.createStateChangeIntent(

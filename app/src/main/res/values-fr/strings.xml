@@ -702,7 +702,6 @@
     <string name="math_challenge_title_dismiss">Résoudre pour ignorer</string>
     <string name="math_challenge_new_problem">Nouveau problème</string>
     <string name="math_challenge_answer_hint">Votre réponse</string>
-    <string name="math_challenge_prompt">Combien vaut %1$d + %2$d ?</string>
     <string name="math_challenge_wrong_answer">Réponse incorrecte</string>
     <string name="math_challenge_category_title">Défi mathématique</string>
     <string name="math_hardness_level_title">Niveau de difficulté mathématique</string>

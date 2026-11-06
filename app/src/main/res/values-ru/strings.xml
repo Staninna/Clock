@@ -702,7 +702,6 @@
     <string name="math_challenge_title_dismiss">Решите, чтобы отключить</string>
     <string name="math_challenge_new_problem">Новый пример</string>
     <string name="math_challenge_answer_hint">Ответ</string>
-    <string name="math_challenge_prompt">Сколько будет %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Неправильно</string>
     <string name="math_challenge_category_title">Математические задачи</string>
     <string name="math_hardness_level_title">Уровень сложности математических примеров</string>

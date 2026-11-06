@@ -702,7 +702,6 @@
     <string name="math_challenge_title_dismiss">Rozwiąż, aby odrzucić</string>
     <string name="math_challenge_new_problem">Nowe zadanie</string>
     <string name="math_challenge_answer_hint">Twoja odpowiedź</string>
-    <string name="math_challenge_prompt">Ile to jest %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Nieprawidłowa odpowiedź</string>
     <string name="math_challenge_category_title">Wyzwanie matematyczne</string>
     <string name="math_hardness_level_title">Poziom trudności zadań matematycznych</string>

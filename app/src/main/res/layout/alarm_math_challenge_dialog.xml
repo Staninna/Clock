@@ -40,41 +40,54 @@
             app:dividerColor="?attr/colorOutline" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/math_challenge_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:maxLines="1"
+            tools:text="Problem 1 of 3" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/math_challenge_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="40dp"
-            android:textSize="24sp"
+            android:paddingVertical="20dp"
+            android:textSize="28sp"
             android:textStyle="bold"
             android:gravity="center"
             android:maxLines="1"
             app:autoSizeTextType="uniform"
             app:autoSizeMinTextSize="12sp"
-            app:autoSizeMaxTextSize="24sp"
+            app:autoSizeMaxTextSize="28sp"
             app:autoSizeStepGranularity="1sp"
-            tools:text="What is 12 + 345?" />
+            tools:text="(23 + 41) \u00D7 7 = ?" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/answer_input_layout"
+        <!-- The answer is entered with the keypad below rather than the system keyboard, so the
+             challenge also works before the first unlock, when the user's keyboard app may not
+             be able to run (it is not necessarily Direct Boot aware). -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/answer_display"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/math_challenge_answer_background"
+            android:gravity="center"
+            android:hint="@string/math_challenge_answer_hint"
+            android:maxLines="1"
+            android:textColor="?attr/colorPrimary"
+            android:textColorHint="?attr/colorOutline"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            tools:text="448" />
+
+        <GridLayout
+            android:id="@+id/keypad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:boxStrokeColor="?attr/colorPrimary">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/answer_input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="24sp"
-                android:gravity="center"
-                android:inputType="number"
-                android:textStyle="bold"
-                android:hint="@string/math_challenge_answer_hint"
-                android:textColor="?attr/colorPrimary"
-                android:textColorHint="?attr/colorPrimary"
-                tools:text="678"
-                tools:ignore="SpeakableTextPresentCheck" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+            android:layout_marginTop="12dp"
+            android:columnCount="3"
+            android:useDefaultMargins="false" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/math_challenge_error"

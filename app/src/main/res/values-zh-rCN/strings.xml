@@ -683,7 +683,6 @@
     <string name="math_challenge_title_dismiss">解题以关闭</string>
     <string name="math_challenge_new_problem">新题目</string>
     <string name="math_challenge_answer_hint">您的答案</string>
-    <string name="math_challenge_prompt">%1$d + %2$d 等于多少？</string>
     <string name="math_challenge_wrong_answer">答案错误</string>
     <string name="central_fab_size_title">中央悬浮操作按钮的大小</string>
     <string name="side_fab_size_title">侧边悬浮操作按钮的大小</string>
