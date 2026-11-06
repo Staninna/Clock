@@ -371,6 +371,35 @@
         <item>hard</item>
     </string-array>
 
+    <!-- Entries for the number of math problems (0 = automatic, by hardness level). -->
+    <string-array name="math_problem_count_entries">
+        <item>@string/math_problem_count_auto</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+    <!-- Values for the number of math problems. These must match math_problem_count_entries above. -->
+    <string-array name="math_problem_count_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+
     <!-- Entries listed in the ListPreference when invoking the clock style preference. -->
     <string-array name="clock_style_entries">
         <item>@string/clock_style_analog</item>

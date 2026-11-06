@@ -6,6 +6,7 @@ import static android.app.Activity.RESULT_OK;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static androidx.core.util.TypedValueCompat.dpToPx;
+import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MATH_HARDNESS_LEVEL;
 import static com.best.deskclock.DeskClockApplication.getDefaultSharedPreferences;
 import static com.best.deskclock.settings.PreferencesDefaultValues.*;
 import static com.best.deskclock.settings.PreferencesKeys.FILE_SPECIFIC_ALARM_BACKGROUND;
@@ -33,6 +34,8 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -43,6 +46,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.widget.NestedScrollView;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.content.IntentCompat;
 import androidx.core.os.BundleCompat;
@@ -102,6 +106,7 @@ import com.best.deskclock.utils.Utils;
 import com.best.deskclock.utils.WidgetUtils;
 import com.best.deskclock.widgets.DigitalAppWidgetProvider;
 import com.best.deskclock.widgets.NextAlarmAppWidgetProvider;
+import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -1086,6 +1091,8 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void bindAlarmHardnessLevel() {
+        bindMathProblemCount();
+
         if (SettingsDAO.isPerAlarmMathHardnessLevelDisabled(mPrefs)) {
             mBinding.mathHardnessLevelLayout.setVisibility(GONE);
             return;
@@ -1114,6 +1121,77 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         };
 
         mBinding.mathHardnessLevelLayout.setOnClickListener(openMathHardnessLevelDialogFragment);
+    }
+
+    /**
+     * Number of math problems for this alarm; only shown with per-alarm math settings and a math
+     * challenge enabled for the alarm.
+     */
+    private void bindMathProblemCount() {
+        if (SettingsDAO.isPerAlarmMathHardnessLevelDisabled(mPrefs)
+            || DEFAULT_MATH_HARDNESS_LEVEL.equals(mAlarm.mathHardnessLevel)) {
+            mBinding.mathProblemCountLayout.setVisibility(GONE);
+            return;
+        }
+
+        mBinding.mathProblemCountLayout.setVisibility(VISIBLE);
+
+        final int count = mAlarm.mathProblemCount;
+        mBinding.mathProblemCountValue.setText(count <= 0
+            ? getString(R.string.math_problem_count_auto_short, AlarmMathChallenge.requiredProblemCount(mAlarm.mathHardnessLevel))
+            : String.valueOf(count));
+
+        mBinding.mathProblemCountLayout.setOnClickListener(v -> showMathProblemCountDialog());
+    }
+
+    private void showMathProblemCountDialog() {
+        final String[] entries = getResources().getStringArray(R.array.math_problem_count_entries);
+        final int padding = (int) dpToPx(24, getResources().getDisplayMetrics());
+        final int minHeight = (int) dpToPx(48, getResources().getDisplayMetrics());
+
+        final RadioGroup group = new RadioGroup(requireContext());
+        group.setPadding(padding, 0, padding, 0);
+
+        for (int i = 0; i < entries.length; i++) {
+            final MaterialRadioButton button = new MaterialRadioButton(requireContext());
+            button.setId(View.generateViewId());
+            button.setText(entries[i]);
+            button.setTag(i);
+            button.setMinHeight(minHeight);
+            group.addView(button);
+            if (i == Math.max(0, mAlarm.mathProblemCount)) {
+                button.setChecked(true);
+            }
+        }
+
+        final NestedScrollView scrollView = new NestedScrollView(requireContext());
+        scrollView.addView(group);
+
+        mActiveDialog = CustomDialog.create(
+            requireContext(),
+            null,
+            AppCompatResources.getDrawable(requireContext(), R.drawable.ic_calculate),
+            getString(R.string.math_problem_count_title),
+            null,
+            scrollView,
+            null,
+            null,
+            getString(android.R.string.cancel),
+            null,
+            null,
+            null,
+            alertDialog -> group.setOnCheckedChangeListener((radioGroup, checkedId) -> {
+                final RadioButton checked = radioGroup.findViewById(checkedId);
+                if (checked != null) {
+                    mAlarm.mathProblemCount = (int) checked.getTag();
+                    bindMathProblemCount();
+                }
+                alertDialog.dismiss();
+            }),
+            CustomDialog.SoftInputMode.NONE
+        );
+
+        mActiveDialog.show();
     }
 
     private void bindCrescendoDuration() {
@@ -1723,6 +1801,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_BACKGROUND_IMAGE, mAlarm.backgroundImage);
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_BLUR_INTENSITY, mAlarm.blurIntensity);
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_MATH_HARDNESS_LEVEL, mAlarm.mathHardnessLevel);
+            previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_MATH_PROBLEM_COUNT, mAlarm.mathProblemCount);
 
             if (RingtoneUtils.RINGTONE_SILENT.equals(mAlarm.alert)) {
                 previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_RINGTONE, "");

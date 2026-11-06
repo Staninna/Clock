@@ -312,6 +312,17 @@
             app:iconSpaceReserved="false"
             app:singleLineTitle="false" />
 
+        <ListPreference
+            android:key="key_alarm_math_problem_count"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/math_problem_count_title"
+            android:entries="@array/math_problem_count_entries"
+            android:entryValues="@array/math_problem_count_values"
+            android:defaultValue="0"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
         <SwitchPreferenceCompat
             android:key="key_enable_per_alarm_math_hardness_level"
             android:layout="@layout/settings_preference_layout"

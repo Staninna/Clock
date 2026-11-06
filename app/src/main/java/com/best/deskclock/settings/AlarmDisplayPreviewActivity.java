@@ -923,7 +923,8 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
         }
 
         resetAnimations();
-        mMathMissionController.requestMissionAction(action, mathHardnessLevel, mMissionRandom);
+        mMathMissionController.requestMissionAction(action, mathHardnessLevel,
+            getPreviewMathProblemCount(mathHardnessLevel), mMissionRandom);
     }
 
     /**
@@ -939,6 +940,19 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
         }
 
         return alarmLevel;
+    }
+
+    /**
+     * @return the number of problems a real alarm would require (see {@link #getPreviewMathHardnessLevel()}).
+     */
+    private int getPreviewMathProblemCount(@NonNull String mathHardnessLevel) {
+        final boolean previewingAlarm = getIntent().hasExtra(AlarmUtils.EXTRA_PREVIEW_MATH_PROBLEM_COUNT);
+
+        final int count = !previewingAlarm || SettingsDAO.isPerAlarmMathHardnessLevelDisabled(getPrefs())
+            ? SettingsDAO.getAlarmMathProblemCount(getPrefs())
+            : getIntent().getIntExtra(AlarmUtils.EXTRA_PREVIEW_MATH_PROBLEM_COUNT, 0);
+
+        return AlarmUtils.resolveMathProblemCount(count, mathHardnessLevel);
     }
 
     /**

@@ -405,12 +405,14 @@ public class AlarmSettingsFragment extends BaseSettingsScreenFragment
 
                 if ((boolean) newValue) {
                     final String mathHardnessLevel = SettingsDAO.getAlarmMathHardnessLevel(getPrefs());
+                    final int mathProblemCount = SettingsDAO.getAlarmMathProblemCount(getPrefs());
 
                     AppExecutors.getDiskIO().execute(() -> {
                         List<Alarm> currentAlarms = Alarm.getAlarms(cr, null);
                         for (Alarm alarm : currentAlarms) {
                             if (!alarm.lock) {
                                 alarm.mathHardnessLevel = mathHardnessLevel;
+                                alarm.mathProblemCount = mathProblemCount;
                                 mAlarmUpdateHandler.asyncUpdateAlarm(alarm, false, true);
                             }
                         }
@@ -1166,7 +1168,10 @@ public class AlarmSettingsFragment extends BaseSettingsScreenFragment
                         case KEY_ENABLE_PER_ALARM_MATH_HARDNESS_LEVEL ->
                             showDisablePerAlarmSettingDialog(R.string.enable_per_alarm_math_hardness_level_dialog_message,
                                 KEY_ENABLE_PER_ALARM_MATH_HARDNESS_LEVEL, mEnablePerAlarmMathHardnessLevelPref, null,
-                                alarm -> alarm.mathHardnessLevel = SettingsDAO.getAlarmMathHardnessLevel(getPrefs()));
+                                alarm -> {
+                                    alarm.mathHardnessLevel = SettingsDAO.getAlarmMathHardnessLevel(getPrefs());
+                                    alarm.mathProblemCount = SettingsDAO.getAlarmMathProblemCount(getPrefs());
+                                });
 
                         case KEY_ENABLE_DELETE_OCCASIONAL_ALARM_BY_DEFAULT ->
                             showDisablePerAlarmSettingDialog(R.string.enable_delete_occasional_alarm_by_default_dialog_message,

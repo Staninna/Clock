@@ -1131,6 +1131,18 @@ public final class SettingsDAO {
     }
 
     /**
+     * @return the number of math problems to solve in a row (1-10), or 0 for automatic (by hardness level).
+     */
+    public static int getAlarmMathProblemCount(@NonNull SharedPreferences prefs) {
+        try {
+            final int count = Integer.parseInt(prefs.getString(KEY_ALARM_MATH_PROBLEM_COUNT, DEFAULT_MATH_PROBLEM_COUNT));
+            return Math.max(0, Math.min(MAX_MATH_PROBLEM_COUNT, count));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
      * @return the alarm sorting by time, by time of next alarm and by name.
      */
     public static String getAlarmSorting(@NonNull SharedPreferences prefs) {
