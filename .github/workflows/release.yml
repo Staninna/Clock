@@ -1,7 +1,8 @@
 # Builds a signed production (release) APK and publishes it as a GitHub Release.
 #
-# Runs when a tag starting with "v" is pushed (e.g. v2.34-math.1), or manually from the
-# Actions tab ("Run workflow"), in which case a tag is created automatically.
+# Runs on every push to my-main (tagged automatically as v<versionName>-fork.<n>), when a tag
+# starting with "v" is pushed, or manually from the Actions tab ("Run workflow").
+# Add [skip ci] to a commit message to push to my-main without releasing.
 #
 # One-time setup: run ./scripts/setup-release-signing.sh on your own computer. It creates the
 # signing key and stores these repository secrets (Settings > Secrets and variables > Actions):
@@ -17,12 +18,24 @@ name: Release
 
 on:
   push:
+    # Every push to my-main publishes a new release (v<versionName>-fork.<n>).
+    # Add [skip ci] to a commit message to push without releasing.
+    branches:
+      - my-main
+    # A pushed v* tag releases exactly that tag.
     tags:
       - "v*"
+    # Pushes that only change docs or store metadata don't need a new release.
+    # (Path filters are ignored for tag pushes.)
+    paths-ignore:
+      - "**/*.md"
+      - "fastlane/**"
+      - ".github/ISSUE_TEMPLATE/**"
+      - "LICENSE*"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to create (leave empty for v<versionName>-r<run number>)"
+        description: "Release tag to create (empty: next v<versionName>-fork.<n>)"
         required: false
         default: ""
       prerelease:
@@ -34,8 +47,9 @@ on:
 permissions:
   contents: write
 
+# One release at a time, so automatic tag numbers never clash; later pushes wait in line.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 
 jobs:
@@ -127,7 +141,17 @@ jobs:
           elif [ -n "$INPUT_TAG" ]; then
             tag="$INPUT_TAG"
           else
-            tag="v${VERSION}-r${GITHUB_RUN_NUMBER}"
+            # Automatic release (push to my-main or manual run without a tag).
+            # Reuse a release tag already on this commit, otherwise take the next free number.
+            git fetch --tags --force --quiet origin || true
+            tag="$(git tag --points-at HEAD --list 'v*' | head -n1)"
+            if [ -z "$tag" ]; then
+              n=1
+              while git rev-parse -q --verify "refs/tags/v${VERSION}-fork.${n}" >/dev/null; do
+                n=$((n + 1))
+              done
+              tag="v${VERSION}-fork.${n}"
+            fi
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
