@@ -4,8 +4,9 @@
 # starting with "v" is pushed, or manually from the Actions tab ("Run workflow").
 # Add [skip ci] to a commit message to push to my-main without releasing.
 #
-# One-time setup: run ./scripts/setup-release-signing.sh on your own computer. It creates the
-# signing key and stores these repository secrets (Settings > Secrets and variables > Actions):
+# One-time setup: run the droidfork kit's signing-key.sh (~/.droidfork/scripts/signing-key.sh) in
+# this repository. It creates or reuses the key in <keys folder>/Staninna__Clock/ and stores these
+# repository secrets (Settings > Secrets and variables > Actions):
 #   KEYSTORE_BASE64    base64 of the release keystore (.jks):  base64 -w0 release.jks
 #   KEYSTORE_PASSWORD  keystore password
 #   KEY_ALIAS          key alias inside the keystore
