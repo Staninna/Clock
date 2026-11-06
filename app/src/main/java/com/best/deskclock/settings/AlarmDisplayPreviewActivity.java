@@ -12,6 +12,7 @@ import static android.view.View.VISIBLE;
 import static androidx.core.util.TypedValueCompat.dpToPx;
 import static com.best.deskclock.settings.PreferencesDefaultValues.AMOLED_DARK_MODE;
 import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_BLUR_INTENSITY;
+import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MATH_HARDNESS_LEVEL;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -56,7 +57,9 @@ import androidx.core.widget.TextViewCompat;
 
 import com.best.deskclock.R;
 import com.best.deskclock.base.AppExecutors;
+import com.best.deskclock.alarms.AlarmActivity;
 import com.best.deskclock.base.BaseActivity;
+import com.best.deskclock.controller.AlarmMathMissionController;
 import com.best.deskclock.data.DataModel;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.databinding.AlarmActivityBinding;
@@ -71,9 +74,11 @@ import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.SdkUtils;
 import com.best.deskclock.utils.ThemeUtils;
 import com.best.deskclock.utils.Utils;
+
 import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
+import java.util.Random;
 
 public class AlarmDisplayPreviewActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener {
 
@@ -115,6 +120,8 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
     private float mInitialTouchX = 0;
     private Vibrator mVibrator;
     private boolean mAreSnoozedOrDismissedAlarmVibrationsEnabled;
+    private final Random mMissionRandom = new Random();
+    private AlarmMathMissionController mMathMissionController;
     private boolean mIsTextShadowDisplayed;
     private int mShadowColor;
     private int mShadowOffset;
@@ -153,6 +160,15 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
         mShadowRadius = mShadowOffset * 0.5f;
 
         getWindow().setBackgroundDrawable(new ColorDrawable(alarmBackgroundColor));
+
+        // Same math challenge as a real alarm; solving it plays the snooze/dismiss animation.
+        mMathMissionController = new AlarmMathMissionController(this, action -> {
+            if (action == AlarmActivity.MISSION_ACTION_SNOOZE) {
+                performSnooze();
+            } else {
+                performDismiss();
+            }
+        }, getGeneralBoldTypeface());
 
         initDefaultSnoozeValue();
 
@@ -206,6 +222,10 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
     protected void onDestroy() {
         if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
+        }
+
+        if (mMathMissionController != null) {
+            mMathMissionController.dismissMission();
         }
 
         mTranslationAnimator = null;
@@ -877,9 +897,54 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
     }
 
     /**
-     * Perform snooze animation.
+     * Snooze as a real alarm would: through the math challenge first, if one applies.
      */
     private void snooze() {
+        requestAction(AlarmActivity.MISSION_ACTION_SNOOZE);
+    }
+
+    /**
+     * Dismiss as a real alarm would: through the math challenge first, if one applies.
+     */
+    private void dismiss() {
+        requestAction(AlarmActivity.MISSION_ACTION_DISMISS);
+    }
+
+    private void requestAction(int action) {
+        final String mathHardnessLevel = getPreviewMathHardnessLevel();
+
+        if (DEFAULT_MATH_HARDNESS_LEVEL.equals(mathHardnessLevel)) {
+            if (action == AlarmActivity.MISSION_ACTION_SNOOZE) {
+                performSnooze();
+            } else {
+                performDismiss();
+            }
+            return;
+        }
+
+        resetAnimations();
+        mMathMissionController.requestMissionAction(action, mathHardnessLevel, mMissionRandom);
+    }
+
+    /**
+     * @return the math hardness level a real alarm would use: the alarm's own level when previewing
+     * a specific alarm with per-alarm levels enabled, otherwise the global level.
+     */
+    @NonNull
+    private String getPreviewMathHardnessLevel() {
+        final String alarmLevel = getIntent().getStringExtra(AlarmUtils.EXTRA_PREVIEW_MATH_HARDNESS_LEVEL);
+
+        if (alarmLevel == null || SettingsDAO.isPerAlarmMathHardnessLevelDisabled(getPrefs())) {
+            return SettingsDAO.getAlarmMathHardnessLevel(getPrefs());
+        }
+
+        return alarmLevel;
+    }
+
+    /**
+     * Perform snooze animation.
+     */
+    private void performSnooze() {
         if (mAreSnoozedOrDismissedAlarmVibrationsEnabled) {
             // Double vibration
             Utils.executeVibrations(mVibrator, new long[]{700, 200, 100, 500}, -1);
@@ -892,7 +957,7 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
     /**
      * Perform dismiss animation.
      */
-    private void dismiss() {
+    private void performDismiss() {
         if (mAreSnoozedOrDismissedAlarmVibrationsEnabled) {
             // Single vibration
             Utils.executeVibrations(mVibrator, new long[]{700, 500}, -1);
