@@ -64,7 +64,7 @@ jobs:
           # snapshots, screenshots) hits a gralloc assertion in the guest that kills system_server.
           # Disable the DMA features so the plain read-back path is used.
           nohup "$ANDROID_HOME/emulator/emulator" -avd a17 -no-window -no-audio -no-boot-anim -no-snapshot \
-            -gpu swiftshader_indirect -feature -GLDMA,-GLDMA2,-GLDirectMem \
+            -gpu swangle_indirect -feature -GLDMA,-GLDMA2,-GLDirectMem \
             -camera-back none -camera-front none > emulator.log 2>&1 &
           adb wait-for-device
           timeout 900 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 5; done'

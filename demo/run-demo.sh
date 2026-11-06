@@ -22,6 +22,9 @@ APK="$(ls app/build/outputs/apk/debug/*.apk | head -n1)"
 adb install -r -g "$APK"
 adb shell appops set "$P" SCHEDULE_EXACT_ALARM allow
 adb shell appops set "$P" USE_FULL_SCREEN_INTENT allow
+# Clock's setup asks the user to exempt it from battery optimization (an "essential" permission);
+# do the same here. Without it, Android 17 refuses to start the alarm service in the foreground.
+adb shell dumpsys deviceidle whitelist +"$P"
 
 echo "== Settings: skip first-launch setup, math challenge on 'hard' (3 problems)"
 adb shell am start -W -n "$P/com.best.deskclock.DeskClock" >/dev/null
@@ -89,16 +92,16 @@ for _ in $(seq 1 240); do
 done
 if adb logcat -d | grep -q "system_server: runtime.cc.*Runtime aborting"; then
     echo "WARNING: system_server crashed during the demo (emulator graphics); results below are not reliable"
-    adb logcat -d | grep -E "mapper.ranchu|Fatal signal.*system_server" | head -5
+    adb logcat -d | grep -E "Assertion failed|Fatal signal.*system_server" | head -n 5 || true
 fi
 # Did the alarm service start in the foreground (i.e. is the alarm really ringing)?
 if adb logcat -d | grep -q "ForegroundServiceStartNotAllowedException.*deskclock\|Unable to start service com.best.deskclock.alarms.AlarmService"; then
     echo "RESULT: the alarm fired but AlarmService could NOT start in the foreground (alarm not ringing)"
-    adb logcat -d | grep -B2 -A8 "Unable to start service com.best.deskclock.alarms.AlarmService" | head -40
+    adb logcat -d | grep -B2 -A8 "Unable to start service com.best.deskclock.alarms.AlarmService" | head -n 40 || true
     exit 1
 fi
 echo "RESULT: alarm fired and AlarmService runs in the foreground"
-adb shell dumpsys activity services "$P" | grep -E "ServiceRecord|isForeground" | head -5
+adb shell dumpsys activity services "$P" | grep -E "ServiceRecord|isForeground" | head -n 5 || true
 $UI wait-id alarm_button 60
 sleep 4
 $UI shot 02-alarm-ringing-on-lock-screen
@@ -125,5 +128,6 @@ echo "== Video"
 if [ -f "$OUT_ABS/demo.webm" ]; then
     ffmpeg -loglevel error -y -i "$OUT_ABS/demo.webm" -vf "scale=540:-2" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "$OUT_ABS/demo.mp4"
     ffmpeg -loglevel error -y -i "$OUT_ABS/demo.webm" -vf "fps=8,scale=360:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" "$OUT_ABS/demo.gif"
+    rm -f "$OUT_ABS/demo.webm"   # large raw recording; mp4 + gif are kept
 fi
 ls -la "$OUT_ABS"
