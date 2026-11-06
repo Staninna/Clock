@@ -16,6 +16,8 @@ adb wait-for-device
 
 # Keep the screen from timing out on its own during the demo.
 adb shell settings put system screen_off_timeout 600000
+# Don't show Android's one-time "Viewing full screen" hint over the alarm screen.
+adb shell settings put secure immersive_mode_confirmations confirmed
 
 echo "== Install"
 APK="$(ls app/build/outputs/apk/debug/*.apk | head -n1)"

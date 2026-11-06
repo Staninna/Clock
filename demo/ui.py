@@ -54,10 +54,22 @@ def tap(n):
     adb("shell", "input", "tap", str(x), str(y))
 
 
+def dismiss_system_hints(root):
+    """Close one-time system hints (e.g. "Viewing full screen") that cover the app."""
+    for label in ("Got it", "GOT IT"):
+        for n in find(root, text=label):
+            tap(n)
+            time.sleep(1)
+            return True
+    return False
+
+
 def wait_for(rid=None, text=None, timeout=120):
     end = time.time() + timeout
     while time.time() < end:
         root = dump()
+        if text not in ("Got it", "GOT IT") and dismiss_system_hints(root):
+            root = dump()
         found = list(find(root, rid=rid, text=text))
         if found:
             return root, found[0]
