@@ -10,6 +10,36 @@ OUT_ABS="$(cd "$OUT" && pwd)"
 P=com.best.deskclock.debug
 UI="python3 demo/ui.py"
 
+# The emulator's software graphics occasionally crash system_server (gralloc assertion while
+# Android saves a task snapshot). Android restarts it by itself; wait for that before going on.
+wait_system() {
+    for _ in $(seq 1 120); do
+        if adb shell service check input 2>/dev/null | grep -q "found" \
+            && adb shell service check activity 2>/dev/null | grep -q "found" \
+            && [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; then
+            return 0
+        fi
+        sleep 2
+    done
+    echo "system did not come back" >&2
+    return 1
+}
+# Run an adb shell command, retrying while system_server restarts.
+ashell() {
+    local out
+    for _ in 1 2 3 4 5; do
+        if out="$(adb shell "$@" 2>&1)" && ! grep -q "Can't find service\|DeadSystemException\|Broken pipe" <<< "$out"; then
+            [ -n "$out" ] && echo "$out"
+            return 0
+        fi
+        echo "(system busy, retrying: $*)" >&2
+        sleep 3
+        wait_system
+    done
+    echo "$out" >&2
+    return 1
+}
+
 adb root >/dev/null
 sleep 3
 adb wait-for-device
@@ -62,6 +92,7 @@ adb push "$TMP_PREFS" "$PREFS" >/dev/null
 OWNER="$(adb shell stat -c %u:%g "/data/user_de/0/$P" | tr -d '\r')"
 adb shell "chown $OWNER $PREFS && chmod 660 $PREFS && restorecon $PREFS"
 
+wait_system
 echo "== Set an alarm about a minute ahead"
 # One argument only: adb shell re-joins and re-splits the command on the device.
 IFS=: read -r H M S <<< "$(adb shell date +%H:%M:%S | tr -d '\r')"
@@ -85,7 +116,8 @@ sleep 6
 $UI shot 01-alarm-list
 
 echo "== Screen off and wait for the alarm"
-adb shell input keyevent KEYCODE_SLEEP
+wait_system
+ashell input keyevent KEYCODE_SLEEP
 adb emu screenrecord start --time-limit 180 "$OUT_ABS/demo.webm"
 for _ in $(seq 1 240); do
     if adb shell dumpsys activity activities | grep -q "mResumedActivity.*AlarmActivity\|topResumedActivity.*AlarmActivity"; then
@@ -97,6 +129,7 @@ if adb logcat -d | grep -q "system_server: runtime.cc.*Runtime aborting"; then
     echo "WARNING: system_server crashed during the demo (emulator graphics); results below are not reliable"
     adb logcat -d | grep -E "Assertion failed|Fatal signal.*system_server" | head -n 5 || true
 fi
+wait_system
 # Did the alarm service start in the foreground (i.e. is the alarm really ringing)?
 if adb logcat -d | grep -q "ForegroundServiceStartNotAllowedException.*deskclock\|Unable to start service com.best.deskclock.alarms.AlarmService"; then
     echo "RESULT: the alarm fired but AlarmService could NOT start in the foreground (alarm not ringing)"
@@ -135,7 +168,7 @@ echo "== Swipe to dismiss -> math challenge"
 $UI swipe-dismiss
 if ! $UI wait-id math_challenge_text 10; then
     echo "Swipe did not open the challenge; using the volume button (set to 'dismiss')"
-    adb shell input keyevent KEYCODE_VOLUME_DOWN
+    ashell input keyevent KEYCODE_VOLUME_DOWN
     $UI wait-id math_challenge_text 20
 fi
 $UI solve-all 04-challenge-

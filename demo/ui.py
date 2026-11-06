@@ -15,7 +15,13 @@ OUT = os.environ.get("OUT", "demo-output")
 
 
 def adb(*args, check=True):
-    r = subprocess.run(["adb", *args], capture_output=True, text=True, timeout=300)
+    # Retry while system_server restarts (emulator graphics can crash it, see run-demo.sh).
+    for attempt in range(20):
+        r = subprocess.run(["adb", *args], capture_output=True, text=True, timeout=300)
+        busy = "Can't find service" in (r.stdout + r.stderr) or "DeadSystem" in (r.stdout + r.stderr)
+        if not busy:
+            break
+        time.sleep(3)
     if check and r.returncode != 0:
         raise RuntimeError(f"adb {' '.join(args)}: {r.stderr}")
     return r.stdout
