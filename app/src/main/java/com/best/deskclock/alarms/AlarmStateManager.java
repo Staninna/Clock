@@ -8,7 +8,6 @@ package com.best.deskclock.alarms;
 
 import static com.best.deskclock.DeskClockApplication.getDefaultSharedPreferences;
 import static com.best.deskclock.settings.PreferencesDefaultValues.ALARM_SNOOZE_DURATION_DISABLED;
-import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MATH_HARDNESS_LEVEL;
 import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MISSED_ALARM_REPEAT_LIMIT;
 import static com.best.deskclock.settings.PreferencesDefaultValues.TIMEOUT_NEVER;
 import static com.best.deskclock.utils.AlarmUtils.ACTION_NEXT_ALARM_CHANGED_BY_CLOCK;
@@ -169,7 +168,15 @@ public final class AlarmStateManager extends BroadcastReceiver {
     private static void performUpdateNextAlarm(@NonNull Context context) {
         Context storageContext = Utils.getSafeStorageContext(context);
 
-        // Important: Do not proceed if the user is locked (direct boot mode).
+        // The alarm database lives in device-protected storage, so the next alarm can be looked up
+        // and registered with the AlarmManager even before the first unlock after a reboot
+        // (direct boot mode). Doing so lets the system show the alarm icon and treat the upcoming
+        // alarm as an alarm clock (highest priority wake-up) while the device is still locked.
+        final AlarmInstance nextAlarm = AlarmInstance.getNextFiringAlarm(context);
+
+        updateNextAlarmInAlarmManager(context, nextAlarm);
+
+        // Important: Do not proceed further if the user is locked (direct boot mode).
         // Updating widgets may fail because credential-protected storage
         // is not yet accessible, and AppWidgetManager.getAppWidgetIds() will throw an exception.
         // Fix https://github.com/BlackyHawky/Clock/issues/369#issuecomment-3344303993
@@ -177,13 +184,9 @@ public final class AlarmStateManager extends BroadcastReceiver {
             return;
         }
 
-        final AlarmInstance nextAlarm = AlarmInstance.getNextFiringAlarm(context);
-
         if (nextAlarm != null) {
             setPowerOffAlarm(context, nextAlarm);
         }
-
-        updateNextAlarmInAlarmManager(context, nextAlarm);
 
         if (SdkUtils.isAtLeastAndroid7()) {
             TileService.requestListeningState(context, new ComponentName(context, AlarmTileService.class));
@@ -426,10 +429,7 @@ public final class AlarmStateManager extends BroadcastReceiver {
 
         Events.sendAlarmEvent(R.string.action_fire, 0);
 
-        String mathHardnessLevel = SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
-            ? SettingsDAO.getAlarmMathHardnessLevel(prefs)
-            : alarm.mathHardnessLevel;
-        boolean hasMathMission = !mathHardnessLevel.equals(DEFAULT_MATH_HARDNESS_LEVEL);
+        boolean hasMathMission = AlarmUtils.hasMathMission(prefs, alarm);
 
         Calendar timeout = instance.getTimeout(context, hasMathMission);
         if (timeout != null) {
@@ -785,10 +785,7 @@ public final class AlarmStateManager extends BroadcastReceiver {
         final Calendar currentTime = getCurrentTime();
         final Calendar alarmTime = instance.getAlarmTime();
 
-        String mathHardnessLevel = SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
-            ? SettingsDAO.getAlarmMathHardnessLevel(prefs)
-            : alarm.mathHardnessLevel;
-        boolean hasMathMission = !mathHardnessLevel.equals(DEFAULT_MATH_HARDNESS_LEVEL);
+        boolean hasMathMission = AlarmUtils.hasMathMission(prefs, alarm);
 
         final Calendar timeoutTime = instance.getTimeout(context, hasMathMission);
         final int notificationReminderTime = SettingsDAO.getAlarmNotificationReminderTime(prefs);

@@ -343,10 +343,20 @@
     <string name="math_challenge_new_problem">New problem</string>
     <!-- Hint for alarm mission answer field. -->
     <string name="math_challenge_answer_hint">Your answer</string>
-    <!-- Prompt for alarm math mission challenge. -->
-    <string name="math_challenge_prompt">What is %1$d + %2$d?</string>
     <!-- Error shown when alarm mission answer is incorrect. -->
     <string name="math_challenge_wrong_answer">Incorrect answer</string>
+    <!-- Message given to a voice assistant or another app trying to stop a ringing alarm that requires a math challenge. -->
+    <string name="alarm_math_challenge_required">Solve the math challenge on the alarm screen to stop this alarm.</string>
+    <!-- Math challenge: the problem to solve, e.g. "14 × 7 + 38 = ?". %1$s is the expression. -->
+    <string name="math_challenge_expression">%1$s = ?</string>
+    <!-- Math challenge: progress when several problems must be solved in a row, e.g. "Problem 2 of 3". -->
+    <string name="math_challenge_progress">Problem %1$d of %2$d</string>
+    <!-- Math challenge keypad: content description of the key that deletes the last digit. -->
+    <string name="math_challenge_delete_digit">Delete last digit</string>
+    <!-- Math challenge keypad: label of the key that clears the answer. -->
+    <string name="math_challenge_clear">C</string>
+    <!-- Math challenge keypad: content description of the key that clears the answer. -->
+    <string name="math_challenge_clear_description">Clear answer</string>
 
     <!-- ******************* -->
     <!-- **     CLOCK     ** -->

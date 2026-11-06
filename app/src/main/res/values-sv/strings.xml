@@ -686,7 +686,6 @@
     <string name="math_challenge_title_dismiss">Lös för att avvisa</string>
     <string name="math_challenge_new_problem">Nytt problem</string>
     <string name="math_challenge_answer_hint">Ditt svar</string>
-    <string name="math_challenge_prompt">Vad är %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Felaktigt svar</string>
     <string name="math_challenge_category_title">Matematikutmaning</string>
     <string name="math_hardness_level_title">Svårighetsnivå för matematik</string>

@@ -693,7 +693,6 @@
     <string name="math_challenge_title_dismiss">Resuelve para descartar</string>
     <string name="math_challenge_new_problem">Nuevo problema</string>
     <string name="math_challenge_answer_hint">Respuesta</string>
-    <string name="math_challenge_prompt">¿Cuánto es %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Respuesta incorrecta</string>
     <string name="math_challenge_category_title">Reto matemático</string>
     <string name="math_hardness_level_title">Nivel de dificultad matemática</string>

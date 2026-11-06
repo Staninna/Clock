@@ -183,8 +183,9 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             if (!mAlarmHandled) {
                 if (action != null) {
                     switch (action) {
-                        case AlarmService.ALARM_SNOOZE_ACTION -> snooze();
-                        case AlarmService.ALARM_DISMISS_ACTION -> dismiss();
+                        // Go through the math challenge if one is required (e.g. flip/shake actions).
+                        case AlarmService.ALARM_SNOOZE_ACTION -> requestAlarmAction(MISSION_ACTION_SNOOZE);
+                        case AlarmService.ALARM_DISMISS_ACTION -> requestAlarmAction(MISSION_ACTION_DISMISS);
                         case AlarmService.ALARM_MUTE_ACTION -> mute();
                         case AlarmService.ALARM_DONE_ACTION -> finish();
                         default -> LOGGER.i("Unknown broadcast: %s", action);
@@ -403,6 +404,10 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             mMediaSession.setActive(false);
             mMediaSession.release();
             mMediaSession = null;
+        }
+
+        if (mMathMissionController != null) {
+            mMathMissionController.dismissMission();
         }
 
         super.onDestroy();
@@ -1358,9 +1363,7 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             return;
         }
 
-        String mathHardnessLevel = SettingsDAO.isPerAlarmMathHardnessLevelDisabled(getPrefs())
-            ? SettingsDAO.getAlarmMathHardnessLevel(getPrefs())
-            : mAlarm.mathHardnessLevel;
+        String mathHardnessLevel = AlarmUtils.getEffectiveMathHardnessLevel(getPrefs(), mAlarm);
 
         if (mathHardnessLevel.equals(DEFAULT_MATH_HARDNESS_LEVEL)) {
             if (action == MISSION_ACTION_SNOOZE) {

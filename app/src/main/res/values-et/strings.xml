@@ -690,7 +690,6 @@
     <string name="turn_on_back_flash_for_expired_timer_title">Taimeri käivitumisel lülita tagumine välklamp sisse</string>
     <string name="info">Teave</string>
     <string name="math_challenge_answer_hint">Sinu vastus</string>
-    <string name="math_challenge_prompt">Arvuta: %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Vigane vastus</string>
     <string name="math_challenge_category_title">Matemaatikaülesanne</string>
     <string name="math_hardness_level_title">Matemaatikaülesande keerukus</string>

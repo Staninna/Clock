@@ -264,7 +264,6 @@
     <string name="math_challenge_title_dismiss">Pecahkan tantangan untuk menutup</string>
     <string name="math_challenge_new_problem">Masalah baru</string>
     <string name="math_challenge_answer_hint">Jawaban Anda</string>
-    <string name="math_challenge_prompt">Berapa %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Jawaban salah</string>
     <string name="city_search_hint">Cari sebuah kota</string>
     <string name="city_note_dialog_title">Catatan untuk %s</string>

@@ -6,7 +6,10 @@
 
 package com.best.deskclock.utils;
 
+import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MATH_HARDNESS_LEVEL;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
@@ -23,6 +26,7 @@ import androidx.core.view.ViewCompat;
 
 import com.best.deskclock.R;
 import com.best.deskclock.data.DataModel;
+import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.uicomponents.toast.CustomToast;
@@ -565,4 +569,34 @@ public class AlarmUtils {
         ViewCompat.setStateDescription(snackbarAnchor, text);
     }
 
+    /**
+     * @return the math hardness level that applies to the given alarm: the global level when
+     * per-alarm levels are disabled (or the alarm is unknown), otherwise the alarm's own level.
+     */
+    @NonNull
+    public static String getEffectiveMathHardnessLevel(@NonNull SharedPreferences prefs, @Nullable Alarm alarm) {
+        return SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
+            ? SettingsDAO.getAlarmMathHardnessLevel(prefs)
+            : alarm.mathHardnessLevel;
+    }
+
+    /**
+     * @return {@code true} if a math challenge must be solved to snooze or dismiss the given alarm.
+     */
+    public static boolean hasMathMission(@NonNull SharedPreferences prefs, @Nullable Alarm alarm) {
+        return !DEFAULT_MATH_HARDNESS_LEVEL.equals(getEffectiveMathHardnessLevel(prefs, alarm));
+    }
+
+    /**
+     * @return {@code true} if a math challenge must be solved to snooze or dismiss the given alarm instance.
+     */
+    public static boolean hasMathMission(@NonNull Context context, @NonNull SharedPreferences prefs,
+                                         @Nullable AlarmInstance instance) {
+
+        final Alarm alarm = instance == null || instance.mAlarmId == null
+            ? null
+            : Alarm.getAlarm(context.getContentResolver(), instance.mAlarmId);
+
+        return hasMathMission(prefs, alarm);
+    }
 }

@@ -690,7 +690,6 @@
     <string name="math_challenge_title_dismiss">Los op om uit te zetten</string>
     <string name="math_challenge_new_problem">Nieuwe som</string>
     <string name="math_challenge_answer_hint">Je oplossing</string>
-    <string name="math_challenge_prompt">Wat is %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Niet juist</string>
     <string name="math_challenge_category_title">Rekensommen oplossen</string>
     <string name="math_hardness_level_title">Moeilijkheidsgraad sommen</string>

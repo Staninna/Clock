@@ -685,7 +685,6 @@
     <string name="math_challenge_title_dismiss">Lösen, um zu verwerfen</string>
     <string name="math_challenge_new_problem">Neues Problem</string>
     <string name="math_challenge_answer_hint">Ihre Antwort</string>
-    <string name="math_challenge_prompt">Was ergibt %1$d + %2$d?</string>
     <string name="math_challenge_wrong_answer">Falsche Antwort</string>
     <string name="math_challenge_category_title">Mathematische Aufgabe</string>
     <string name="math_hardness_level_title">Schwierigkeitsstufe für Mathe</string>
