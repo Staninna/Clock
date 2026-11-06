@@ -87,6 +87,10 @@ for _ in $(seq 1 240); do
     fi
     sleep 1
 done
+if adb logcat -d | grep -q "system_server: runtime.cc.*Runtime aborting"; then
+    echo "WARNING: system_server crashed during the demo (emulator graphics); results below are not reliable"
+    adb logcat -d | grep -E "mapper.ranchu|Fatal signal.*system_server" | head -5
+fi
 # Did the alarm service start in the foreground (i.e. is the alarm really ringing)?
 if adb logcat -d | grep -q "ForegroundServiceStartNotAllowedException.*deskclock\|Unable to start service com.best.deskclock.alarms.AlarmService"; then
     echo "RESULT: the alarm fired but AlarmService could NOT start in the foreground (alarm not ringing)"
