@@ -55,6 +55,7 @@ def put(tag, name, value):
         e.set("value", value)
 put("boolean", "key_is_first_launch", "false")
 put("string", "key_alarm_math_hardness_level", "hard")
+put("string", "key_volume_button_setting", "2")  # volume buttons dismiss (goes through the challenge)
 ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)
 PY
 adb push "$TMP_PREFS" "$PREFS" >/dev/null
@@ -108,16 +109,35 @@ $UI wait-id alarm_button 60
 sleep 4
 $UI shot 02-alarm-ringing-on-lock-screen
 
-echo "== Notification: no Snooze/Dismiss buttons while a math challenge is required"
-adb shell cmd statusbar expand-notifications
-sleep 3
-$UI shot 03-notification-without-dismiss
-adb shell cmd statusbar collapse
-sleep 2
+echo "== Notification: no Snooze/Dismiss actions while a math challenge is required"
+adb shell dumpsys notification --noredact > "$OUT_ABS/notifications-dump.txt" || true
+python3 - "$OUT_ABS/notifications-dump.txt" "$P" > "$OUT_ABS/03-ringing-notification-actions.txt" <<'PY'
+import re, sys
+text = open(sys.argv[1], errors="replace").read()
+pkg = sys.argv[2]
+blocks = re.split(r"\n(?=\s+NotificationRecord\()", text)
+for b in blocks:
+    if pkg in b and "category=alarm" in b:
+        actions = re.findall(r"actions=\{?(\d+)", b)
+        print("Ringing alarm notification of", pkg)
+        print("  actions:", actions[0] if actions else "0 (no action buttons)")
+        for line in b.splitlines():
+            if re.search(r"\[\d+\] \"|actions=|category=|flags=", line):
+                print(" ", line.strip())
+        break
+else:
+    print("ringing alarm notification not found")
+PY
+cat "$OUT_ABS/03-ringing-notification-actions.txt"
+rm -f "$OUT_ABS/notifications-dump.txt"
 
 echo "== Swipe to dismiss -> math challenge"
 $UI swipe-dismiss
-$UI wait-id math_challenge_text 30
+if ! $UI wait-id math_challenge_text 10; then
+    echo "Swipe did not open the challenge; using the volume button (set to 'dismiss')"
+    adb shell input keyevent KEYCODE_VOLUME_DOWN
+    $UI wait-id math_challenge_text 20
+fi
 $UI solve-all 04-challenge-
 sleep 3
 $UI shot 05-dismissed

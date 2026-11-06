@@ -116,10 +116,9 @@ def press_ok():
 def swipe_dismiss():
     """Slide the alarm button to the dismiss side (right in LTR), like a user would."""
     root, button = wait_for(rid="alarm_button", timeout=60)
-    zone = next(find(root, rid="slide_zone_layout"))
     bx, by = center(button)
-    zx1, _, zx2, _ = bounds(zone)
-    adb("shell", "input", "swipe", str(bx), str(by), str(zx2 - 10), str(by), "900")
+    width = int(re.search(r"(\d+)x\d+", adb("shell", "wm", "size")).group(1))
+    adb("shell", "input", "touchscreen", "swipe", str(bx), str(by), str(width - 2), str(by), "1500")
 
 
 def solve_all(prefix):
