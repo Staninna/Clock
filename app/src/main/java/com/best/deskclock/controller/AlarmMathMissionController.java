@@ -25,6 +25,7 @@ import com.best.deskclock.databinding.AlarmMathChallengeDialogBinding;
 import com.best.deskclock.uicomponents.CustomDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.shape.ShapeAppearanceModel;
 
 import java.util.Random;
 
@@ -42,6 +43,12 @@ public class AlarmMathMissionController {
      * Longest answer that can be typed; larger than any answer the generator produces.
      */
     private static final int MAX_ANSWER_LENGTH = 6;
+
+    /**
+     * Fully round keypad keys, without a separate pressed shape.
+     */
+    private static final ShapeAppearanceModel ROUND_KEY_SHAPE =
+        ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build();
 
     private final Context mContext;
     private final Callback mCallback;
@@ -140,6 +147,9 @@ public class AlarmMathMissionController {
             button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
             button.setInsetTop(0);
             button.setInsetBottom(0);
+            // Material 3 Expressive buttons morph to squarer corners while pressed, which looks like
+            // flicker when typing on a keypad. Use one fixed, fully round shape instead.
+            button.setShapeAppearanceModel(ROUND_KEY_SHAPE);
 
             switch (key) {
                 case "C" -> {
