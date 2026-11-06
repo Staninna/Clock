@@ -239,6 +239,12 @@ public final class ClockContract {
         String MATH_PROBLEM_COUNT = "mathProblemCount";
 
         /**
+         * Whether the math challenge is used for this alarm (if a math hardness level applies).
+         * <p>Type: BOOLEAN</p>
+         */
+        String MATH_CHALLENGE_ENABLED = "mathChallengeEnabled";
+
+        /**
          * True if alarm is locked
          * <p>Type: BOOLEAN</p>
          */

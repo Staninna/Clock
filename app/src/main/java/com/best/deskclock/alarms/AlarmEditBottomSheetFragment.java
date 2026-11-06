@@ -973,7 +973,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         }
 
         int autoSilenceDuration = mAlarm.autoSilenceDuration;
-        boolean hasMathMission = !mAlarm.mathHardnessLevel.equals(DEFAULT_MATH_HARDNESS_LEVEL);
+        boolean hasMathMission = AlarmUtils.hasMathMission(mPrefs, mAlarm);
 
         mBinding.autoSilenceDurationLayout.setVisibility(VISIBLE);
         mBinding.autoSilenceDurationLayout.setEnabled(!hasMathMission);
@@ -1091,9 +1091,10 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void bindAlarmHardnessLevel() {
+        bindMathChallengeOnOff();
         bindMathProblemCount();
 
-        if (SettingsDAO.isPerAlarmMathHardnessLevelDisabled(mPrefs)) {
+        if (SettingsDAO.isPerAlarmMathHardnessLevelDisabled(mPrefs) || !mAlarm.mathChallengeEnabled) {
             mBinding.mathHardnessLevelLayout.setVisibility(GONE);
             return;
         }
@@ -1127,8 +1128,33 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
      * Number of math problems for this alarm; only shown with per-alarm math settings and a math
      * challenge enabled for the alarm.
      */
+    /**
+     * Per-alarm switch to turn the math challenge off, e.g. for kitchen timers or bedtime alarms.
+     * Shown whenever a math challenge could apply to this alarm.
+     */
+    private void bindMathChallengeOnOff() {
+        final boolean challengeConfigured = !SettingsDAO.isPerAlarmMathHardnessLevelDisabled(mPrefs)
+            || !DEFAULT_MATH_HARDNESS_LEVEL.equals(SettingsDAO.getAlarmMathHardnessLevel(mPrefs));
+
+        if (!challengeConfigured) {
+            mBinding.mathChallengeOnOff.setVisibility(GONE);
+            return;
+        }
+
+        mBinding.mathChallengeOnOff.setVisibility(VISIBLE);
+        mBinding.mathChallengeOnOff.setOnCheckedChangeListener(null);
+        mBinding.mathChallengeOnOff.setChecked(mAlarm.mathChallengeEnabled);
+        mBinding.mathChallengeOnOff.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Utils.performHapticFeedback(buttonView, mIsVibrationEnabled, HapticFeedbackConstantsCompat.VIRTUAL_KEY);
+            mAlarm.mathChallengeEnabled = isChecked;
+            bindAlarmHardnessLevel();
+            bindAutoSilenceValue();
+        });
+    }
+
     private void bindMathProblemCount() {
         if (SettingsDAO.isPerAlarmMathHardnessLevelDisabled(mPrefs)
+            || !mAlarm.mathChallengeEnabled
             || DEFAULT_MATH_HARDNESS_LEVEL.equals(mAlarm.mathHardnessLevel)) {
             mBinding.mathProblemCountLayout.setVisibility(GONE);
             return;
@@ -1802,6 +1828,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_BLUR_INTENSITY, mAlarm.blurIntensity);
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_MATH_HARDNESS_LEVEL, mAlarm.mathHardnessLevel);
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_MATH_PROBLEM_COUNT, mAlarm.mathProblemCount);
+            previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_MATH_CHALLENGE_ENABLED, mAlarm.mathChallengeEnabled);
 
             if (RingtoneUtils.RINGTONE_SILENT.equals(mAlarm.alert)) {
                 previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_RINGTONE, "");

@@ -83,6 +83,7 @@ public class AlarmUtils {
     public static final String EXTRA_PREVIEW_BLUR_INTENSITY = "extra_preview_blur_intensity";
     public static final String EXTRA_PREVIEW_MATH_HARDNESS_LEVEL = "extra_preview_math_hardness_level";
     public static final String EXTRA_PREVIEW_MATH_PROBLEM_COUNT = "extra_preview_math_problem_count";
+    public static final String EXTRA_PREVIEW_MATH_CHALLENGE_ENABLED = "extra_preview_math_challenge_enabled";
 
     /**
      * Intent action sent when the alarm has been either created or updated in the Clock app.
@@ -574,11 +575,17 @@ public class AlarmUtils {
     }
 
     /**
-     * @return the math hardness level that applies to the given alarm: the global level when
-     * per-alarm levels are disabled (or the alarm is unknown), otherwise the alarm's own level.
+     * @return the math hardness level that applies to the given alarm: "off" when the math challenge
+     * is switched off for the alarm, the global level when per-alarm levels are disabled (or the
+     * alarm is unknown), otherwise the alarm's own level.
      */
     @NonNull
     public static String getEffectiveMathHardnessLevel(@NonNull SharedPreferences prefs, @Nullable Alarm alarm) {
+        if (alarm != null && !alarm.mathChallengeEnabled) {
+            // Math challenge switched off for this alarm (e.g. a kitchen timer or bedtime alarm).
+            return DEFAULT_MATH_HARDNESS_LEVEL;
+        }
+
         return SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
             ? SettingsDAO.getAlarmMathHardnessLevel(prefs)
             : alarm.mathHardnessLevel;
