@@ -65,11 +65,16 @@ ADD=1
 M=$((M + ADD))
 if [ "$M" -ge 60 ]; then M=$((M - 60)); H=$(((H + 1) % 24)); fi
 echo "Alarm at $(printf '%02d:%02d' "$H" "$M")"
-adb shell am start -W -a android.intent.action.SET_ALARM \
+RESULT="$(adb shell am start -W -a android.intent.action.SET_ALARM \
     --ei android.intent.extra.alarm.HOUR "$H" \
     --ei android.intent.extra.alarm.MINUTES "$M" \
-    --es android.intent.extra.alarm.MESSAGE "Wake up" \
-    -n "$P/com.best.deskclock.HandleSetAlarmApiCalls" >/dev/null
+    --es android.intent.extra.alarm.MESSAGE Wake-up \
+    -p "$P" 2>&1 || true)"
+echo "$RESULT"
+if echo "$RESULT" | grep -qiE "error|exception"; then
+    echo "Could not create the alarm" >&2
+    exit 1
+fi
 sleep 6
 $UI shot 01-alarm-list
 
