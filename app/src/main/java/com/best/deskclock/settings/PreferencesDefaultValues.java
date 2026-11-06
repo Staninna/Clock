@@ -124,6 +124,9 @@ public class PreferencesDefaultValues {
     public static final int DEFAULT_SHAKE_INTENSITY = 16;
     public static final boolean DEFAULT_ENABLE_PER_ALARM_MATH_HARDNESS_LEVEL = false;
     public static final String DEFAULT_MATH_HARDNESS_LEVEL = "off";
+    // Number of math problems in a row; "0" = automatic (by hardness level), otherwise 1-10.
+    public static final String DEFAULT_MATH_PROBLEM_COUNT = "0";
+    public static final int MAX_MATH_PROBLEM_COUNT = 10;
     // From easiest to hardest. "easy", "normal" and "hard" are the original levels.
     public static final String MATH_HARDNESS_LEVEL_EASY = "easy";
     public static final String MATH_HARDNESS_LEVEL_FAIR = "fair";

@@ -31,7 +31,7 @@ class ClockDatabaseHelper extends SQLiteOpenHelper {
     static final String INSTANCES_TABLE_NAME = "alarm_instances";
     static final String CATEGORIES_TABLE_NAME = "alarm_categories";
 
-    private static final int DATABASE_VERSION = 30;
+    private static final int DATABASE_VERSION = 31;
     private static final int MINIMUM_SUPPORTED_VERSION = 15;
 
     public ClockDatabaseHelper(@Nullable Context context) {
@@ -77,7 +77,8 @@ class ClockDatabaseHelper extends SQLiteOpenHelper {
             ClockContract.AlarmsColumns.MATH_HARDNESS_LEVEL + " TEXT NOT NULL DEFAULT 'off', " +
             ClockContract.AlarmsColumns.LOCK + " INTEGER NOT NULL DEFAULT 0, " +
             ClockContract.AlarmsColumns.TIMEZONE + " TEXT DEFAULT '', " +
-            ClockContract.AlarmsColumns.CATEGORY_IDS + " TEXT NOT NULL DEFAULT ',0,');");
+            ClockContract.AlarmsColumns.CATEGORY_IDS + " TEXT NOT NULL DEFAULT ',0,', " +
+            ClockContract.AlarmsColumns.MATH_PROBLEM_COUNT + " INTEGER NOT NULL DEFAULT 0);");
 
         LogUtils.i("Alarms Table created");
     }
@@ -336,6 +337,28 @@ class ClockDatabaseHelper extends SQLiteOpenHelper {
 
             LogUtils.i("categoryId column and categories table added for version 30 upgrade.");
         }
+
+        if (oldVersion < 31) {
+            // The column may already exist if an earlier step recreated the table with the current schema.
+            if (!hasColumn(db, ALARMS_TABLE_NAME, ClockContract.AlarmsColumns.MATH_PROBLEM_COUNT)) {
+                db.execSQL("ALTER TABLE " + ALARMS_TABLE_NAME + " ADD COLUMN " +
+                    ClockContract.AlarmsColumns.MATH_PROBLEM_COUNT + " INTEGER NOT NULL DEFAULT 0;");
+            }
+
+            LogUtils.i("mathProblemCount column added for version 31 upgrade.");
+        }
+    }
+
+    private static boolean hasColumn(@NonNull SQLiteDatabase db, @NonNull String table, @NonNull String column) {
+        try (Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null)) {
+            final int nameIndex = cursor.getColumnIndex("name");
+            while (cursor.moveToNext()) {
+                if (column.equals(cursor.getString(nameIndex))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     long fixAlarmInsert(@Nullable ContentValues values) {

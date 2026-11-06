@@ -1377,7 +1377,8 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
 
         resetAnimations();
 
-        mMathMissionController.requestMissionAction(action, mathHardnessLevel, mMissionRandom);
+        final int problemCount = AlarmUtils.getEffectiveMathProblemCount(getPrefs(), mAlarm, mathHardnessLevel);
+        mMathMissionController.requestMissionAction(action, mathHardnessLevel, problemCount, mMissionRandom);
     }
 
     /**

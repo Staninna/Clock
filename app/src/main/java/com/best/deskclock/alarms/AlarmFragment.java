@@ -1458,6 +1458,7 @@ public final class AlarmFragment extends DeskClockFragment
         alarm.backgroundImage = DEFAULT_SPECIFIC_ALARM_BACKGROUND_IMAGE;
         alarm.blurIntensity = SettingsDAO.getAlarmBlurIntensity(getPrefs());
         alarm.mathHardnessLevel = SettingsDAO.getAlarmMathHardnessLevel(getPrefs());
+        alarm.mathProblemCount = SettingsDAO.getAlarmMathProblemCount(getPrefs());
         alarm.lock = false;
         alarm.timeZone = "";
         alarm.categoryIds = new long[]{mCurrentCategoryId};

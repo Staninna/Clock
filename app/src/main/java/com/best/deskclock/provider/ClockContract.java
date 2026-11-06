@@ -232,6 +232,13 @@ public final class ClockContract {
         String MATH_HARDNESS_LEVEL = "mathHardnessLevel";
 
         /**
+         * The number of math problems to solve in a row to dismiss or snooze the alarm
+         * (1-10), or 0 to use the default of the hardness level.
+         * <p>Type: INTEGER</p>
+         */
+        String MATH_PROBLEM_COUNT = "mathProblemCount";
+
+        /**
          * True if alarm is locked
          * <p>Type: BOOLEAN</p>
          */

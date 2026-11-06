@@ -54,12 +54,16 @@ public class AlarmMathMissionController {
         mGeneralBoldTypeface = generalBoldTypeface;
     }
 
-    public void requestMissionAction(int action, @NonNull String mathHardnessLevel, @NonNull Random random) {
+    /**
+     * @param problemCount how many problems must be solved in a row (see
+     *                     {@link com.best.deskclock.utils.AlarmUtils#getEffectiveMathProblemCount}).
+     */
+    public void requestMissionAction(int action, @NonNull String mathHardnessLevel, int problemCount, @NonNull Random random) {
         if (mCurrentDialog != null && mCurrentDialog.isShowing()) {
             return;
         }
 
-        final MissionState state = new MissionState(mathHardnessLevel, random);
+        final MissionState state = new MissionState(mathHardnessLevel, Math.max(1, problemCount), random);
 
         final AlarmMathChallengeDialogBinding binding = AlarmMathChallengeDialogBinding.inflate(LayoutInflater.from(mContext));
 
@@ -254,10 +258,10 @@ public class AlarmMathMissionController {
         AlarmMathChallenge challenge;
         int solvedCount;
 
-        MissionState(@NonNull String hardness, @NonNull Random random) {
+        MissionState(@NonNull String hardness, int requiredCount, @NonNull Random random) {
             this.hardness = hardness;
             this.random = random;
-            this.requiredCount = AlarmMathChallenge.requiredProblemCount(hardness);
+            this.requiredCount = requiredCount;
             newProblem();
         }
 

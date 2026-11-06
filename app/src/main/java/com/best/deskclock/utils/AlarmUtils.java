@@ -7,6 +7,7 @@
 package com.best.deskclock.utils;
 
 import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MATH_HARDNESS_LEVEL;
+import static com.best.deskclock.settings.PreferencesDefaultValues.MAX_MATH_PROBLEM_COUNT;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -25,6 +26,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.core.view.ViewCompat;
 
 import com.best.deskclock.R;
+import com.best.deskclock.alarms.AlarmMathChallenge;
 import com.best.deskclock.data.DataModel;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.provider.Alarm;
@@ -80,6 +82,7 @@ public class AlarmUtils {
      */
     public static final String EXTRA_PREVIEW_BLUR_INTENSITY = "extra_preview_blur_intensity";
     public static final String EXTRA_PREVIEW_MATH_HARDNESS_LEVEL = "extra_preview_math_hardness_level";
+    public static final String EXTRA_PREVIEW_MATH_PROBLEM_COUNT = "extra_preview_math_problem_count";
 
     /**
      * Intent action sent when the alarm has been either created or updated in the Clock app.
@@ -579,6 +582,31 @@ public class AlarmUtils {
         return SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
             ? SettingsDAO.getAlarmMathHardnessLevel(prefs)
             : alarm.mathHardnessLevel;
+    }
+
+    /**
+     * @return how many math problems must be solved in a row for the given alarm and hardness level:
+     * the alarm's own count when per-alarm levels are enabled, otherwise the global count; when that
+     * is "automatic" (0), the default of the hardness level.
+     */
+    public static int getEffectiveMathProblemCount(@NonNull SharedPreferences prefs, @Nullable Alarm alarm,
+                                                   @NonNull String mathHardnessLevel) {
+
+        final int count = SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
+            ? SettingsDAO.getAlarmMathProblemCount(prefs)
+            : alarm.mathProblemCount;
+
+        return resolveMathProblemCount(count, mathHardnessLevel);
+    }
+
+    /**
+     * @return {@code count} limited to 1-10, or the hardness level's default when {@code count} is 0 (automatic).
+     */
+    public static int resolveMathProblemCount(int count, @NonNull String mathHardnessLevel) {
+        if (count <= 0) {
+            return AlarmMathChallenge.requiredProblemCount(mathHardnessLevel);
+        }
+        return Math.min(count, MAX_MATH_PROBLEM_COUNT);
     }
 
     /**

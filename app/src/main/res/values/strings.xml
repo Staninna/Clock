@@ -1095,6 +1095,12 @@
     <string name="math_hardness_level_tough">Tough</string>
     <!-- Setting title to change the math hardness level to Hard -->
     <string name="math_hardness_level_hard">Hard</string>
+    <!-- Setting title for the number of math problems that must be solved in a row. -->
+    <string name="math_problem_count_title">Number of problems</string>
+    <!-- Number of math problems: use the default of the hardness level. -->
+    <string name="math_problem_count_auto">Automatic (by level)</string>
+    <!-- Number of math problems in the alarm editing panel when automatic; %d is the level's number of problems. -->
+    <string name="math_problem_count_auto_short">Auto (%d)</string>
     <!-- Setting title to use a custom math hardness level for each alarm. -->
     <string name="enable_per_alarm_math_hardness_level_title">Use a custom math hardness level for each alarm</string>
     <!-- Dialog message when the "Set a math hardness level for each alarm" setting is disabled. -->
