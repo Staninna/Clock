@@ -1718,6 +1718,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_RINGTONE, mAlarm.alert);
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_BACKGROUND_IMAGE, mAlarm.backgroundImage);
             previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_BLUR_INTENSITY, mAlarm.blurIntensity);
+            previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_MATH_HARDNESS_LEVEL, mAlarm.mathHardnessLevel);
 
             if (RingtoneUtils.RINGTONE_SILENT.equals(mAlarm.alert)) {
                 previewIntent.putExtra(AlarmUtils.EXTRA_PREVIEW_RINGTONE, "");
