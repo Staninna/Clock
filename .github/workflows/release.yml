@@ -3,7 +3,8 @@
 # Runs when a tag starting with "v" is pushed (e.g. v2.34-math.1), or manually from the
 # Actions tab ("Run workflow"), in which case a tag is created automatically.
 #
-# Required repository secrets (Settings > Secrets and variables > Actions):
+# One-time setup: run ./scripts/setup-release-signing.sh on your own computer. It creates the
+# signing key and stores these repository secrets (Settings > Secrets and variables > Actions):
 #   KEYSTORE_BASE64    base64 of the release keystore (.jks):  base64 -w0 release.jks
 #   KEYSTORE_PASSWORD  keystore password
 #   KEY_ALIAS          key alias inside the keystore
