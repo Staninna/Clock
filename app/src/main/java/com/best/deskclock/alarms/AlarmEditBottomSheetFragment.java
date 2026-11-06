@@ -1149,6 +1149,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             mAlarm.mathChallengeEnabled = isChecked;
             bindAlarmHardnessLevel();
             bindAutoSilenceValue();
+            updateThirdGroup();
         });
     }
 
@@ -1211,6 +1212,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
                 if (checked != null) {
                     mAlarm.mathProblemCount = (int) checked.getTag();
                     bindMathProblemCount();
+                    updateThirdGroup();
                 }
                 alertDialog.dismiss();
             }),
@@ -1280,7 +1282,9 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         if (mBinding.autoSilenceDurationLayout.getVisibility() == GONE
             && mBinding.snoozeDurationLayout.getVisibility() == GONE
             && mBinding.missedAlarmRepeatLimitLayout.getVisibility() == GONE
+            && mBinding.mathChallengeOnOff.getVisibility() == GONE
             && mBinding.mathHardnessLevelLayout.getVisibility() == GONE
+            && mBinding.mathProblemCountLayout.getVisibility() == GONE
             && mBinding.crescendoDurationLayout.getVisibility() == GONE
             && mBinding.alarmVolumeLayout.getVisibility() == GONE) {
             mBinding.space.setVisibility(GONE);
@@ -1518,6 +1522,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
                 mAlarm.mathHardnessLevel = bundle.getString(AlarmMathHardnessLevelDialogFragment.RESULT_MATH_HARDNESS_LEVEL);
                 bindAlarmHardnessLevel();
                 bindAutoSilenceValue();
+                updateThirdGroup();
             });
 
         childFragmentManager.setFragmentResultListener(VolumeCrescendoDurationDialogFragment.REQUEST_KEY, this,
@@ -1910,7 +1915,9 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             mBinding.autoSilenceDurationLayout,
             mBinding.snoozeDurationLayout,
             mBinding.missedAlarmRepeatLimitLayout,
+            mBinding.mathChallengeOnOff,
             mBinding.mathHardnessLevelLayout,
+            mBinding.mathProblemCountLayout,
             mBinding.crescendoDurationLayout,
             mBinding.alarmVolumeLayout
         );
