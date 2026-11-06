@@ -1,0 +1,83 @@
+# Records screenshots and a video of the alarm math challenge on an Android 17 emulator.
+# Runs on pushes to the demo-screenshots branch, or manually. Results are uploaded as the
+# "math-challenge-demo" artifact.
+
+name: Demo screenshots
+
+on:
+  push:
+    branches:
+      - demo-screenshots
+  workflow_dispatch:
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-configuration-cache :app:assembleDebug
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install Android 17 emulator
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "emulator" "system-images;android-37.0;default;x86_64" > /dev/null
+          echo no | avdmanager create avd -n a17 -k "system-images;android-37.0;default;x86_64" -d pixel_7 --force
+          sed -i 's/^hw.ramSize=.*/hw.ramSize=4096/' ~/.android/avd/a17.avd/config.ini
+
+      - name: Boot emulator
+        run: |
+          nohup "$ANDROID_HOME/emulator/emulator" -avd a17 -no-window -no-audio -no-boot-anim -no-snapshot \
+            -gpu swiftshader_indirect -camera-back none -camera-front none > emulator.log 2>&1 &
+          adb wait-for-device
+          timeout 900 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 5; done'
+          # Give the launcher and system UI time to settle.
+          sleep 45
+          adb shell input keyevent KEYCODE_WAKEUP
+          adb shell wm dismiss-keyguard
+
+      - name: Install ffmpeg
+        run: command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -yq ffmpeg)
+
+      - name: Record the math challenge
+        run: bash demo/run-demo.sh
+
+      - name: Collect logs
+        if: always()
+        run: |
+          mkdir -p demo-output
+          cp emulator.log demo-output/ 2>/dev/null || true
+          adb logcat -d > demo-output/logcat.txt 2>/dev/null || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: math-challenge-demo
+          path: demo-output/
