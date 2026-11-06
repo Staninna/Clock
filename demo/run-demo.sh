@@ -57,7 +57,8 @@ OWNER="$(adb shell stat -c %u:%g "/data/user_de/0/$P" | tr -d '\r')"
 adb shell "chown $OWNER $PREFS && chmod 660 $PREFS && restorecon $PREFS"
 
 echo "== Set an alarm about a minute ahead"
-read -r H M S <<< "$(adb shell date +'%H %M %S' | tr -d '\r')"
+# One argument only: adb shell re-joins and re-splits the command on the device.
+IFS=: read -r H M S <<< "$(adb shell date +%H:%M:%S | tr -d '\r')"
 H=$((10#$H)); M=$((10#$M)); S=$((10#$S))
 ADD=1
 [ "$S" -ge 40 ] && ADD=2
