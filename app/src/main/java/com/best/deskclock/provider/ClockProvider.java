@@ -117,6 +117,8 @@ public class ClockProvider extends ContentProvider {
             ALARMS_TABLE_NAME + "." + AlarmsColumns.MATH_HARDNESS_LEVEL);
         sAlarmsWithInstancesProjection.put(ALARMS_TABLE_NAME + "." + AlarmsColumns.MATH_PROBLEM_COUNT,
             ALARMS_TABLE_NAME + "." + AlarmsColumns.MATH_PROBLEM_COUNT);
+        sAlarmsWithInstancesProjection.put(ALARMS_TABLE_NAME + "." + AlarmsColumns.MATH_CHALLENGE_ENABLED,
+            ALARMS_TABLE_NAME + "." + AlarmsColumns.MATH_CHALLENGE_ENABLED);
         sAlarmsWithInstancesProjection.put(ALARMS_TABLE_NAME + "." + AlarmsColumns.LOCK,
             ALARMS_TABLE_NAME + "." + AlarmsColumns.LOCK);
         sAlarmsWithInstancesProjection.put(ALARMS_TABLE_NAME + "." + AlarmsColumns.TIMEZONE,

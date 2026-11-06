@@ -89,7 +89,8 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
         LOCK,
         TIMEZONE,
         CATEGORY_IDS,
-        MATH_PROBLEM_COUNT
+        MATH_PROBLEM_COUNT,
+        MATH_CHALLENGE_ENABLED
     };
     private static final String[] QUERY_ALARMS_WITH_INSTANCES_COLUMNS = {
         ClockDatabaseHelper.ALARMS_TABLE_NAME + "." + _ID,
@@ -122,6 +123,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
         ClockDatabaseHelper.ALARMS_TABLE_NAME + "." + TIMEZONE,
         ClockDatabaseHelper.ALARMS_TABLE_NAME + "." + CATEGORY_IDS,
         ClockDatabaseHelper.ALARMS_TABLE_NAME + "." + MATH_PROBLEM_COUNT,
+        ClockDatabaseHelper.ALARMS_TABLE_NAME + "." + MATH_CHALLENGE_ENABLED,
         ClockDatabaseHelper.INSTANCES_TABLE_NAME + "." + ClockContract.InstancesColumns.ALARM_STATE,
         ClockDatabaseHelper.INSTANCES_TABLE_NAME + "." + ClockContract.InstancesColumns._ID,
         ClockDatabaseHelper.INSTANCES_TABLE_NAME + "." + ClockContract.InstancesColumns.YEAR,
@@ -176,28 +178,29 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
     private static final int TIMEZONE_INDEX = 27;
     private static final int CATEGORY_ID_INDEX = 28;
     private static final int MATH_PROBLEM_COUNT_INDEX = 29;
+    private static final int MATH_CHALLENGE_ENABLED_INDEX = 30;
 
-    private static final int INSTANCE_STATE_INDEX = 30;
-    public static final int INSTANCE_ID_INDEX = 31;
-    public static final int INSTANCE_YEAR_INDEX = 32;
-    public static final int INSTANCE_MONTH_INDEX = 33;
-    public static final int INSTANCE_DAY_INDEX = 34;
-    public static final int INSTANCE_HOUR_INDEX = 35;
-    public static final int INSTANCE_MINUTE_INDEX = 36;
-    public static final int INSTANCE_LABEL_INDEX = 37;
-    public static final int INSTANCE_SYNC_BY_LABEL_INDEX = 38;
-    public static final int INSTANCE_VIBRATE_INDEX = 39;
-    public static final int INSTANCE_VIBRATION_PATTERN_INDEX = 40;
-    public static final int INSTANCE_FLASH_INDEX = 41;
-    public static final int INSTANCE_AUTO_SILENCE_DURATION_INDEX = 42;
-    public static final int INSTANCE_SNOOZE_DURATION_INDEX = 43;
-    public static final int INSTANCE_MISSED_ALARM_REPEAT_COUNT_INDEX = 44;
-    public static final int INSTANCE_MISSED_ALARM_REPEAT_LIMIT_INDEX = 45;
-    public static final int INSTANCE_CRESCENDO_DURATION_INDEX = 46;
-    public static final int INSTANCE_ALARM_VOLUME_INDEX = 47;
-    public static final int INSTANCE_TIMEZONE_INDEX = 48;
+    private static final int INSTANCE_STATE_INDEX = 31;
+    public static final int INSTANCE_ID_INDEX = 32;
+    public static final int INSTANCE_YEAR_INDEX = 33;
+    public static final int INSTANCE_MONTH_INDEX = 34;
+    public static final int INSTANCE_DAY_INDEX = 35;
+    public static final int INSTANCE_HOUR_INDEX = 36;
+    public static final int INSTANCE_MINUTE_INDEX = 37;
+    public static final int INSTANCE_LABEL_INDEX = 38;
+    public static final int INSTANCE_SYNC_BY_LABEL_INDEX = 39;
+    public static final int INSTANCE_VIBRATE_INDEX = 40;
+    public static final int INSTANCE_VIBRATION_PATTERN_INDEX = 41;
+    public static final int INSTANCE_FLASH_INDEX = 42;
+    public static final int INSTANCE_AUTO_SILENCE_DURATION_INDEX = 43;
+    public static final int INSTANCE_SNOOZE_DURATION_INDEX = 44;
+    public static final int INSTANCE_MISSED_ALARM_REPEAT_COUNT_INDEX = 45;
+    public static final int INSTANCE_MISSED_ALARM_REPEAT_LIMIT_INDEX = 46;
+    public static final int INSTANCE_CRESCENDO_DURATION_INDEX = 47;
+    public static final int INSTANCE_ALARM_VOLUME_INDEX = 48;
+    public static final int INSTANCE_TIMEZONE_INDEX = 49;
 
-    private static final int COLUMN_COUNT = MATH_PROBLEM_COUNT_INDEX + 1;
+    private static final int COLUMN_COUNT = MATH_CHALLENGE_ENABLED_INDEX + 1;
     private static final int ALARM_JOIN_INSTANCE_COLUMN_COUNT = INSTANCE_TIMEZONE_INDEX + 1;
     // Public fields
     public long id;
@@ -235,6 +238,11 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
      * Number of math problems to solve in a row (1-10); 0 means automatic (by hardness level).
      */
     public int mathProblemCount;
+    /**
+     * Whether this alarm uses the math challenge (if one is configured). Off for alarms that are
+     * not meant to wake the user up, e.g. kitchen timers or bedtime reminders.
+     */
+    public boolean mathChallengeEnabled = true;
 
     // Creates a default alarm at the current time.
     public Alarm() {
@@ -348,6 +356,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
         this.timeZone = original.timeZone;
         this.categoryIds = original.categoryIds;
         this.mathProblemCount = original.mathProblemCount;
+        this.mathChallengeEnabled = original.mathChallengeEnabled;
     }
 
     public Alarm(@NonNull Cursor c) {
@@ -381,6 +390,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
         String categoriesStr = c.getString(CATEGORY_ID_INDEX);
         categoryIds = parseCategoryIds(categoriesStr);
         mathProblemCount = c.getInt(MATH_PROBLEM_COUNT_INDEX);
+        mathChallengeEnabled = c.getInt(MATH_CHALLENGE_ENABLED_INDEX) == 1;
 
         if (c.getColumnCount() == ALARM_JOIN_INSTANCE_COLUMN_COUNT) {
             instanceState = c.getInt(INSTANCE_STATE_INDEX);
@@ -426,6 +436,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
         timeZone = p.readString();
         categoryIds = p.createLongArray();
         mathProblemCount = p.readInt();
+        mathChallengeEnabled = p.readInt() == 1;
     }
 
     @NonNull
@@ -463,6 +474,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
         values.put(TIMEZONE, timeZone);
         values.put(CATEGORY_IDS, formatCategoryIds(categoryIds));
         values.put(MATH_PROBLEM_COUNT, mathProblemCount);
+        values.put(MATH_CHALLENGE_ENABLED, mathChallengeEnabled ? 1 : 0);
 
         if (alert == null) {
             // We want to put null, so default alarm changes
@@ -505,6 +517,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
         p.writeString(timeZone);
         p.writeLongArray(categoryIds);
         p.writeInt(mathProblemCount);
+        p.writeInt(mathChallengeEnabled ? 1 : 0);
     }
 
     public int describeContents() {
@@ -750,6 +763,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
             || blurIntensity != other.blurIntensity
             || !Objects.equals(mathHardnessLevel, other.mathHardnessLevel)
             || mathProblemCount != other.mathProblemCount
+            || mathChallengeEnabled != other.mathChallengeEnabled
             || lock != other.lock
             || categoryIds != other.categoryIds;
     }
@@ -1192,6 +1206,7 @@ public final class Alarm implements Parcelable, ClockContract.AlarmsColumns {
             ", blurIntensity=" + blurIntensity +
             ", mathHardnessLevel=" + mathHardnessLevel +
             ", mathProblemCount=" + mathProblemCount +
+            ", mathChallengeEnabled=" + mathChallengeEnabled +
             ", lock=" + lock +
             ", timeZone=" + timeZone +
             ", categoryIds=" + Arrays.toString(categoryIds) +

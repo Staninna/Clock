@@ -933,6 +933,10 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
      */
     @NonNull
     private String getPreviewMathHardnessLevel() {
+        if (!getIntent().getBooleanExtra(AlarmUtils.EXTRA_PREVIEW_MATH_CHALLENGE_ENABLED, true)) {
+            return DEFAULT_MATH_HARDNESS_LEVEL;
+        }
+
         final String alarmLevel = getIntent().getStringExtra(AlarmUtils.EXTRA_PREVIEW_MATH_HARDNESS_LEVEL);
 
         if (alarmLevel == null || SettingsDAO.isPerAlarmMathHardnessLevelDisabled(getPrefs())) {

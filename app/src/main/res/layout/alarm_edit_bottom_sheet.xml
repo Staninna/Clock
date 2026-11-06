@@ -639,6 +639,26 @@
 
                 </LinearLayout>
 
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/math_challenge_on_off"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="2dp"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="10dp"
+                    android:button="@null"
+                    android:drawableStart="@drawable/ic_calculate"
+                    android:drawableEnd="@drawable/ic_selector_checkbox"
+                    android:drawablePadding="10dp"
+                    android:text="@string/math_challenge_category_title"
+                    android:textColor="?android:attr/textColorPrimary"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/missed_alarm_repeat_limit_layout"
+                    tools:ignore="RtlSymmetry"
+                    tools:checked="true" />
+
                 <LinearLayout
                     android:id="@+id/math_hardness_level_layout"
                     android:layout_width="0dp"
@@ -649,7 +669,7 @@
                     android:paddingHorizontal="10dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/missed_alarm_repeat_limit_layout">
+                    app:layout_constraintTop_toBottomOf="@id/math_challenge_on_off">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/math_hardness_level_title"

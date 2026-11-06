@@ -230,6 +230,7 @@ public class BackupAndRestoreManager {
             alarmObject.put("blurIntensity", alarm.blurIntensity);
             alarmObject.put("mathHardnessLevel", alarm.mathHardnessLevel);
             alarmObject.put("mathProblemCount", alarm.mathProblemCount);
+            alarmObject.put("mathChallengeEnabled", alarm.mathChallengeEnabled);
             alarmObject.put("lock", alarm.lock);
             alarmObject.put("timeZone", alarm.timeZone);
 
@@ -575,6 +576,7 @@ public class BackupAndRestoreManager {
             blurIntensity, mathHardnessLevel, lock, timeZone, categoryIds);
         // 0 = automatic (by hardness level); older backups don't have this field.
         restoredAlarm.mathProblemCount = Math.max(0, Math.min(10, alarmObject.optInt("mathProblemCount", 0)));
+        restoredAlarm.mathChallengeEnabled = alarmObject.optBoolean("mathChallengeEnabled", true);
 
         restoredAlarm.addAlarm(contentResolver);
 
