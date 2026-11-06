@@ -1093,13 +1093,17 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
 
         mBinding.mathHardnessLevelLayout.setVisibility(VISIBLE);
 
-        String mathHardnessLevelText = mAlarm.mathHardnessLevel;
-        switch (mathHardnessLevelText) {
-            case MATH_HARDNESS_LEVEL_EASY -> mBinding.mathHardnessLevelValue.setText(getString(R.string.math_hardness_level_easy));
-            case MATH_HARDNESS_LEVEL_NORMAL -> mBinding.mathHardnessLevelValue.setText(getString(R.string.math_hardness_level_normal));
-            case MATH_HARDNESS_LEVEL_HARD -> mBinding.mathHardnessLevelValue.setText(getString(R.string.math_hardness_level_hard));
-            default -> mBinding.mathHardnessLevelValue.setText(getString(R.string.label_off));
+        // Show the level's name; the entries and values arrays list the levels in the same order.
+        final String[] levelNames = getResources().getStringArray(R.array.math_hardness_level_entries);
+        final String[] levelValues = getResources().getStringArray(R.array.math_hardness_level_values);
+        String levelName = getString(R.string.label_off);
+        for (int i = 0; i < levelValues.length; i++) {
+            if (levelValues[i].equals(mAlarm.mathHardnessLevel)) {
+                levelName = levelNames[i];
+                break;
+            }
         }
+        mBinding.mathHardnessLevelValue.setText(levelName);
 
         View.OnClickListener openMathHardnessLevelDialogFragment = v -> {
             Events.sendAlarmEvent(R.string.action_set_math_hardness_level, R.string.label_deskclock);

@@ -108,7 +108,14 @@ public class AlarmMathHardnessLevelDialogFragment extends DialogFragment {
         mBinding = AlarmMathHardnessLevelDialogBinding.inflate(getLayoutInflater());
 
         RadioButton[] buttons = {
-            mBinding.mathHardnessLevelOff, mBinding.mathHardnessLevelEasy, mBinding.mathHardnessLevelNormal, mBinding.mathHardnessLevelHard
+            mBinding.mathHardnessLevelOff,
+            mBinding.mathHardnessLevelEasy,
+            mBinding.mathHardnessLevelFair,
+            mBinding.mathHardnessLevelModerate,
+            mBinding.mathHardnessLevelNormal,
+            mBinding.mathHardnessLevelTricky,
+            mBinding.mathHardnessLevelTough,
+            mBinding.mathHardnessLevelHard
         };
 
         String[] values = context.getResources().getStringArray(R.array.math_hardness_level_values);

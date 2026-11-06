@@ -352,14 +352,22 @@
     <string-array name="math_hardness_level_entries">
         <item>@string/label_off</item>
         <item>@string/math_hardness_level_easy</item>
+        <item>@string/math_hardness_level_fair</item>
+        <item>@string/math_hardness_level_moderate</item>
         <item>@string/math_hardness_level_normal</item>
+        <item>@string/math_hardness_level_tricky</item>
+        <item>@string/math_hardness_level_tough</item>
         <item>@string/math_hardness_level_hard</item>
     </string-array>
     <!-- Values that are retrieved from the ListPreference. These must match the math_hardness_level_entries above. -->
     <string-array name="math_hardness_level_values" translatable="false">
         <item>off</item>
         <item>easy</item>
+        <item>fair</item>
+        <item>moderate</item>
         <item>normal</item>
+        <item>tricky</item>
+        <item>tough</item>
         <item>hard</item>
     </string-array>
 

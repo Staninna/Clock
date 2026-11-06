@@ -1083,8 +1083,16 @@
     <string name="math_hardness_level_title">Math hardness level</string>
     <!-- Setting title to change the math hardness level to Easy -->
     <string name="math_hardness_level_easy">Easy</string>
+    <!-- Setting title to change the math hardness level to Fair (between Easy and Normal) -->
+    <string name="math_hardness_level_fair">Fair</string>
+    <!-- Setting title to change the math hardness level to Moderate (between Easy and Normal) -->
+    <string name="math_hardness_level_moderate">Moderate</string>
     <!-- Setting title to change the math hardness level to Normal -->
     <string name="math_hardness_level_normal">Normal</string>
+    <!-- Setting title to change the math hardness level to Tricky (between Normal and Hard) -->
+    <string name="math_hardness_level_tricky">Tricky</string>
+    <!-- Setting title to change the math hardness level to Tough (between Normal and Hard) -->
+    <string name="math_hardness_level_tough">Tough</string>
     <!-- Setting title to change the math hardness level to Hard -->
     <string name="math_hardness_level_hard">Hard</string>
     <!-- Setting title to use a custom math hardness level for each alarm. -->

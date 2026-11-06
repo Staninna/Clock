@@ -124,8 +124,13 @@ public class PreferencesDefaultValues {
     public static final int DEFAULT_SHAKE_INTENSITY = 16;
     public static final boolean DEFAULT_ENABLE_PER_ALARM_MATH_HARDNESS_LEVEL = false;
     public static final String DEFAULT_MATH_HARDNESS_LEVEL = "off";
+    // From easiest to hardest. "easy", "normal" and "hard" are the original levels.
     public static final String MATH_HARDNESS_LEVEL_EASY = "easy";
+    public static final String MATH_HARDNESS_LEVEL_FAIR = "fair";
+    public static final String MATH_HARDNESS_LEVEL_MODERATE = "moderate";
     public static final String MATH_HARDNESS_LEVEL_NORMAL = "normal";
+    public static final String MATH_HARDNESS_LEVEL_TRICKY = "tricky";
+    public static final String MATH_HARDNESS_LEVEL_TOUGH = "tough";
     public static final String MATH_HARDNESS_LEVEL_HARD = "hard";
     public static final String DEFAULT_SORT_BY_ALARM_TIME = "0";
     public static final String SORT_ALARM_BY_NEXT_ALARM_TIME = "1";

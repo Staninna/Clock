@@ -38,11 +38,55 @@
             android:paddingEnd="@null" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/math_hardness_level_fair"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/math_hardness_level_fair"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingStart="20dp"
+            android:paddingEnd="@null" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/math_hardness_level_moderate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/math_hardness_level_moderate"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingStart="20dp"
+            android:paddingEnd="@null" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/math_hardness_level_normal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
             android:text="@string/math_hardness_level_normal"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingStart="20dp"
+            android:paddingEnd="@null" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/math_hardness_level_tricky"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/math_hardness_level_tricky"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingStart="20dp"
+            android:paddingEnd="@null" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/math_hardness_level_tough"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/math_hardness_level_tough"
             android:textSize="16sp"
             android:textColor="?android:attr/textColorSecondary"
             android:paddingStart="20dp"
