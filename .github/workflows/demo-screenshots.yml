@@ -60,8 +60,10 @@ jobs:
 
       - name: Boot emulator
         run: |
+          # -gpu guest: render inside the guest. With swiftshader_indirect, reading back a window
+          # (task snapshots, screenshots) hits a gralloc assertion that kills system_server.
           nohup "$ANDROID_HOME/emulator/emulator" -avd a17 -no-window -no-audio -no-boot-anim -no-snapshot \
-            -gpu swiftshader_indirect -camera-back none -camera-front none > emulator.log 2>&1 &
+            -gpu guest -camera-back none -camera-front none > emulator.log 2>&1 &
           adb wait-for-device
           timeout 900 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 5; done'
           # Give the launcher and system UI time to settle.

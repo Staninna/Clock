@@ -65,7 +65,7 @@ ADD=1
 M=$((M + ADD))
 if [ "$M" -ge 60 ]; then M=$((M - 60)); H=$(((H + 1) % 24)); fi
 echo "Alarm at $(printf '%02d:%02d' "$H" "$M")"
-RESULT="$(adb shell am start -W -a android.intent.action.SET_ALARM \
+RESULT="$(adb shell am start -a android.intent.action.SET_ALARM \
     --ei android.intent.extra.alarm.HOUR "$H" \
     --ei android.intent.extra.alarm.MINUTES "$M" \
     --es android.intent.extra.alarm.MESSAGE Wake-up \
@@ -87,6 +87,14 @@ for _ in $(seq 1 240); do
     fi
     sleep 1
 done
+# Did the alarm service start in the foreground (i.e. is the alarm really ringing)?
+if adb logcat -d | grep -q "ForegroundServiceStartNotAllowedException.*deskclock\|Unable to start service com.best.deskclock.alarms.AlarmService"; then
+    echo "RESULT: the alarm fired but AlarmService could NOT start in the foreground (alarm not ringing)"
+    adb logcat -d | grep -B2 -A8 "Unable to start service com.best.deskclock.alarms.AlarmService" | head -40
+    exit 1
+fi
+echo "RESULT: alarm fired and AlarmService runs in the foreground"
+adb shell dumpsys activity services "$P" | grep -E "ServiceRecord|isForeground" | head -5
 $UI wait-id alarm_button 60
 sleep 4
 $UI shot 02-alarm-ringing-on-lock-screen
