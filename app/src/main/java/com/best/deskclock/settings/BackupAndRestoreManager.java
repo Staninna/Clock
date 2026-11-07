@@ -233,6 +233,9 @@ public class BackupAndRestoreManager {
             alarmObject.put("mathChallengeEnabled", alarm.mathChallengeEnabled);
             alarmObject.put("lock", alarm.lock);
             alarmObject.put("timeZone", alarm.timeZone);
+            alarmObject.put("taskName", alarm.taskName);
+            alarmObject.put("taskUrl", alarm.taskUrl);
+            alarmObject.put("disableDND", alarm.disableDND);
 
             JSONArray categoryIdsArray = new JSONArray();
             if (alarm.categoryIds != null) {
@@ -466,6 +469,9 @@ public class BackupAndRestoreManager {
             }
         }
 
+        // Migrate all system ringtones currently used by alarms to the device's protected storage
+        RingtoneUtils.migrateSystemRingtonesToLocal(context);
+
         AlarmStateManager.updateNextAlarm(context);
     }
 
@@ -507,6 +513,9 @@ public class BackupAndRestoreManager {
         String timeZone = alarmObject.optString("timeZone", "");
         long[] categoryIds = new long[]{Alarm.DEFAULT_CATEGORY_ID};
         JSONArray catIdsArray = alarmObject.optJSONArray("categoryIds");
+        String taskName = alarmObject.optString("taskName", "");
+        String taskUrl = alarmObject.optString("taskUrl", "");
+        boolean disableDND = alarmObject.optBoolean("disableDND", false);
 
         if (catIdsArray != null && catIdsArray.length() > 0) {
             List<Long> mappedIds = new ArrayList<>();
@@ -573,7 +582,7 @@ public class BackupAndRestoreManager {
         restoredAlarm = new Alarm(id, enabled, year, month, day, hour, minutes, vibrate, vibrationPattern, flash,
             Weekdays.fromBits(daysOfWeek), label, syncAlarmByLabel, alarmRingtone, deleteAfterUse, autoSilenceDuration, snoozeDuration,
             missedAlarmRepeatLimit, crescendoDuration, alarmVolume, manualSortOrder, pauseStartDate, pauseEndDate, newBackgroundImage,
-            blurIntensity, mathHardnessLevel, lock, timeZone, categoryIds);
+            blurIntensity, mathHardnessLevel, lock, timeZone, categoryIds, taskName, taskUrl, disableDND);
         // 0 = automatic (by hardness level); older backups don't have this field.
         restoredAlarm.mathProblemCount = Math.max(0, Math.min(10, alarmObject.optInt("mathProblemCount", 0)));
         restoredAlarm.mathChallengeEnabled = alarmObject.optBoolean("mathChallengeEnabled", true);

@@ -23,6 +23,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:overScrollMode="never"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/drag_handle"
@@ -134,6 +135,7 @@
         <androidx.core.widget.NestedScrollView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:overScrollMode="never"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/repeat_days_group"
@@ -490,13 +492,33 @@
 
                 </LinearLayout>
 
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/dnd_on_off"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="2dp"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="10dp"
+                    android:button="@null"
+                    android:drawableStart="@drawable/ic_bedtime_off"
+                    android:drawableEnd="@drawable/ic_selector_checkbox"
+                    android:drawablePadding="10dp"
+                    android:text="@string/disable_dnd"
+                    android:textColor="?android:attr/textColorPrimary"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/delete_alarm_after_use_layout"
+                    tools:ignore="RtlSymmetry"
+                    tools:checked="true" />
+
                 <Space
                     android:id="@+id/space"
                     android:layout_width="0dp"
                     android:layout_height="8dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/delete_alarm_after_use_layout"
+                    app:layout_constraintTop_toBottomOf="@+id/dnd_on_off"
                     app:layout_constraintBottom_toTopOf="@+id/auto_silence_duration_layout" />
 
                 <LinearLayout
@@ -813,6 +835,45 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/task_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="2dp"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="10dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/alarm_volume_layout">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/task_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:drawableStart="@drawable/ic_task"
+                        android:paddingStart="@null"
+                        android:paddingEnd="10dp"
+                        android:drawablePadding="10dp"
+                        android:gravity="center_vertical"
+                        android:focusable="true"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="@string/task_title" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/task_value"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="end|center_vertical"
+                        android:focusable="true"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        tools:text="Weather" />
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/alarm_background_image_layout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -821,7 +882,7 @@
                     android:minHeight="48dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/alarm_volume_layout">
+                    app:layout_constraintTop_toBottomOf="@id/task_layout">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/alarm_background_image_title"

@@ -23,6 +23,8 @@
     <string name="label_never">Never</string>
     <!-- Label "None" (male form) -->
     <string name="label_none">None</string>
+    <!-- Label "Back" -->
+    <string name="label_back">Back</string>
     <!-- Label "Category" -->
     <string name="label_category">Category</string>
     <!-- Label "Cities" -->
@@ -148,10 +150,28 @@
     <string name="alarm_vibrate">Vibrate</string>
     <!-- Setting labels on Set alarm screen: Flash on or off -->
     <string name="alarm_flash">Flash</string>
+    <!-- Setting labels on Set alarm screen: DND on or off -->
+    <string name="disable_dnd">Disable \"Do Not Disturb\"</string>
     <!-- Setting labels on Set alarm screen: Lock on -->
     <string name="label_lock">Lock</string>
     <!-- Setting labels on Set alarm screen: Lock off -->
     <string name="label_unlock">Unlock</string>
+    <!-- Setting labels on Set alarm screen: Task -->
+    <string name="task_title">Task</string>
+    <!-- Task name -->
+    <string name="task_name">Name</string>
+    <!-- Task URL -->
+    <string name="task_url">URL</string>
+    <!-- Helper text for the task URL -->
+    <string name="task_url_helper_text">Must start with \"http://\" or \"https://\" or \"app://\"</string>
+    <!-- Dialog title to select an app that will be launched after dismissing/snoozing the alarm. -->
+    <string name="select_app_title">Select app</string>
+    <!-- Text displayed while apps are loading -->
+    <string name="loading_apps_title">Loading apps</string>
+    <!-- Text in the app selector search bar -->
+    <string name="search_app_title">Search for an app</string>
+    <!-- Text in the search bar and content description of the search bar icon of the Alarm tab -->
+    <string name="search_alarm_title">Search for an alarm</string>
     <!-- Setting labels on Set alarm screen: Delete alarm once dismissed on or off -->
     <string name="delete_occasional_alarm_after_use_title">Delete alarm once dismissed</string>
     <!-- Message displayed in the alarm editing panel when the "Delete alarm once dismissed" feature is disabled -->
@@ -378,6 +398,8 @@
     <string name="city_unchecked"><xliff:g id="city_name">%s</xliff:g> unchecked</string>
     <!-- Dialog title when editing a city note -->
     <string name="city_note_dialog_title">Note for %s</string>
+    <!-- Hint of the field when editing a city note -->
+    <string name="city_note_hint">Note</string>
     <!-- Number of hours or minutes the world city is ahead of the current city [CHAR LIMIT=NONE] -->
     <string name="world_time_ahead"><xliff:g example="6 hours" id="time">%1$s</xliff:g> ahead</string>
     <!-- Number of hours or minutes the world city is behind the current city [CHAR LIMIT=NONE] -->
@@ -588,6 +610,8 @@
     <string name="more_options">More options</string>
     <!-- Text that explains what happens to alarms and timers after removing the custom ringtone sound they use [CHAR LIMIT=NONE] -->
     <string name="confirm_remove_custom_ringtone">Alarms and timers using this sound will play the default sound instead.</string>
+    <!-- Dialog message when deleting all custom ringtones. -->
+    <string name="confirm_remove_all_custom_ringtones">Are you sure you want to remove all custom ringtones?\n\nAlarms and timers currently using them will be reset to the default sound.</string>
     <!-- Text shown in the progress dialog while custom ringtones are being added.
          %1$d = number of ringtones already processed
          %2$d = total number of ringtones to add -->
@@ -635,6 +659,10 @@
     <!-- **     COMMON SETTINGS    ** -->
     <!-- **************************** -->
 
+    <!-- Category title for general settings. -->
+    <string name="general_category_title">General</string>
+    <!-- Category title for advanced settings. -->
+    <string name="advanced_category_title">Advanced</string>
     <!-- Category title for style settings. -->
     <string name="style_category_title">Style</string>
     <!-- Category title for color settings. -->
@@ -773,6 +801,10 @@
     <string name="vibration_pattern_tick_tock">Tick-Tock</string>
     <!-- Setting title to enable live update notifications -->
     <string name="live_update_notifications_title">Enable live update notifications</string>
+    <!-- Setting title to lock the buttons if the proximity sensor is covered in the triggered alarm view or in the expired timer view -->
+    <string name="proximity_sensor_title">Lock buttons when the screen is covered</string>
+    <!-- Setting summary about locking buttons when the screen is covered. -->
+    <string name="proximity_sensor_summary">Prevents accidentally stopping the alarm by using the proximity sensor</string>
 
     <!-- ******************************* -->
     <!-- **     INTERFACE SETTINGS    ** -->
@@ -1013,6 +1045,8 @@
     <string name="enable_snoozed_or_dismissed_alarm_vibrations_summary">Double vibration when alarm is snoozed and single vibration when alarm is dismissed</string>
     <!-- Setting title to turn on flash when alarm is triggered -->
     <string name="turn_on_back_flash_for_triggered_alarm_title">Turn on back flash when alarm is triggered</string>
+    <!-- Setting title to disable "Do Not Disturb" mode when alarm is triggered -->
+    <string name="disable_DND_for_triggered_alarm_title">Disable \"Do Not Disturb\" mode when alarm is triggered</string>
     <!-- Setting title to display the button for deleting single alarms in the alarm editing panel -->
     <string name="enable_delete_occasional_alarm_by_default_setting_title">Enable automatic deletion of occasional alarms by default</string>
     <!-- Dialog message when the "Enable automatic deletion of occasional alarms by default" setting is disabled. -->
@@ -1465,6 +1499,7 @@
     <string name="permissions_category_title">Permissions</string>
     <string name="permission_requirement_title">Requirement: </string>
     <string name="permission_highly_recommended">Highly recommended</string>
+    <string name="permission_optional">Optional</string>
     <string name="permission_status_title">Status: </string>
     <string name="permission_info_title">For Xiaomi devices only</string>
     <string name="permission_granted">Granted</string>
@@ -1492,6 +1527,10 @@
     <string name="show_lockscreen_permission_title">SHOW ON LOCK SCREEN</string>
     <string name="show_lockscreen_dialog_title">Show on lock screen</string>
     <string name="show_lockscreen_dialog_text">On Xiaomi devices, you should manually enable the \"Show on lock screen\" permission from the device settings in order for the application to work properly.</string>
+    <!-- "Do Not Disturb" permission -->
+    <string name="dnd_permission_title">DO NOT DISTURB</string>
+    <string name="dnd_dialog_title">Do Not Disturb</string>
+    <string name="dnd_dialog_text">This permission allows the app to automatically turn off \"Do Not Disturb\" mode when your alarm goes off.\n\nWe recommend enabling it so you don\'t miss important calls or messages after waking up.</string>
     <!-- Foreground service -->
     <string name="foreground_service_title">Display a foreground notification</string>
     <string name="foreground_service_dialog_message">To prevent your device from aggressively closing the app and missing alarms, this will display a persistent, silent notification.\n\nThis ensures the app stays in memory, though it may slightly increase battery usage.\n\nNote: Enabling this setting is not necessary for most devices. Only enable it if you experience missed alarms.</string>

@@ -10,6 +10,7 @@ import static com.best.deskclock.DeskClockApplication.getDefaultSharedPreference
 import static com.best.deskclock.settings.PreferencesKeys.KEY_AUTO_ROUTING_TO_EXTERNAL_AUDIO_DEVICE;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -38,11 +39,13 @@ import com.best.deskclock.R;
 import com.best.deskclock.base.AlarmAlertWakeLock;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.events.Events;
+import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.ringtone.RingtonePlayer;
 import com.best.deskclock.utils.AlarmUtils;
 import com.best.deskclock.utils.DeviceUtils;
 import com.best.deskclock.utils.LogUtils;
+import com.best.deskclock.utils.PermissionUtils;
 import com.best.deskclock.utils.SdkUtils;
 import com.best.deskclock.utils.Utils;
 
@@ -202,6 +205,11 @@ public class AlarmService extends Service {
                         // Set the alarm state to dismissed.
                         AlarmStateManager.deleteInstanceAndUpdateParent(context, mPrefs, mCurrentAlarm, true);
                         Events.sendAlarmEvent(R.string.action_dismiss, R.string.label_intent);
+
+                        Alarm alarm = Alarm.getAlarm(context.getContentResolver(), mCurrentAlarm.mAlarmId);
+                        if (alarm != null) {
+                            AlarmUtils.launchTask(context, alarm);
+                        }
                     }
 
                     case ALARM_MUTE_ACTION -> {
@@ -589,6 +597,8 @@ public class AlarmService extends Service {
 
         mCurrentAlarm = instance;
 
+        disableDNDIfNeeded(this, instance);
+
         AlarmNotifications.showAlarmNotification(
             this, mCurrentAlarm, SettingsDAO.getLanguageCode(mPrefs), SettingsDAO.getGlobalIntentId(mPrefs));
 
@@ -626,6 +636,34 @@ public class AlarmService extends Service {
         sendBroadcast(intent);
 
         attachListeners();
+    }
+
+    private void disableDNDIfNeeded(@NonNull Context context, @NonNull AlarmInstance instance) {
+        NotificationManager notificationManager = context.getApplicationContext().getSystemService(NotificationManager.class);
+
+        if (notificationManager == null) {
+            return;
+        }
+
+        if (notificationManager.getCurrentInterruptionFilter() == NotificationManager.INTERRUPTION_FILTER_ALL) {
+            LogUtils.i("DND already disabled by the alarm");
+            return;
+        }
+
+        Alarm alarm = Alarm.getAlarm(context.getContentResolver(), instance.mAlarmId);
+
+        if (alarm != null && alarm.disableDND) {
+            if (PermissionUtils.isDNDPermissionEnabled(this)) {
+                try {
+                    notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
+                    LogUtils.i("DND disabled by the alarm");
+                } catch (SecurityException e) {
+                    LogUtils.e("Permission error when disabling DND", e);
+                }
+            } else {
+                LogUtils.w("Cannot disable DND: missing ACCESS_NOTIFICATION_POLICY permission");
+            }
+        }
     }
 
     private void stopCurrentAlarm() {
@@ -823,7 +861,7 @@ public class AlarmService extends Service {
                     SettingsDAO.getGlobalIntentId(mPrefs))
                 );
 
-            case ALARM_DISMISS ->
+            case ALARM_DISMISS -> {
                 startService(AlarmStateManager.createStateChangeIntent(
                     this,
                     mCurrentAlarm,
@@ -831,6 +869,12 @@ public class AlarmService extends Service {
                     AlarmInstance.DISMISSED_STATE,
                     SettingsDAO.getGlobalIntentId(mPrefs))
                 );
+
+                Alarm alarm = Alarm.getAlarm(getContentResolver(), mCurrentAlarm.mAlarmId);
+                if (alarm != null) {
+                    AlarmUtils.launchTask(this, alarm);
+                }
+            }
 
             case ALARM_MUTE -> {
                 stopAlarmKlaxon();

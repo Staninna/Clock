@@ -11,14 +11,12 @@ import static android.media.RingtoneManager.TITLE_COLUMN_INDEX;
 import static com.best.deskclock.utils.RingtoneUtils.RANDOM_CUSTOM_RINGTONE;
 import static com.best.deskclock.utils.RingtoneUtils.RANDOM_RINGTONE;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.UriPermission;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.media.Ringtone;
@@ -28,12 +26,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.ArrayMap;
-import android.util.ArraySet;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.best.deskclock.R;
+import com.best.deskclock.utils.DeviceUtils;
 import com.best.deskclock.utils.FileUtils;
 import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.RingtoneUtils;
@@ -47,10 +45,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -91,6 +87,8 @@ public final class RingtoneModel {
      * A mutable copy of the custom ringtones.
      */
     private List<CustomRingtone> mCustomRingtones;
+
+    private boolean mIsCachePrimed = false;
 
     public RingtoneModel(@NonNull Context context, @NonNull SharedPreferences prefs) {
         mContext = Utils.getSafeStorageContext(context.getApplicationContext());
@@ -212,28 +210,9 @@ public final class RingtoneModel {
         return Collections.unmodifiableList(getMutableCustomRingtones());
     }
 
-    @SuppressLint("NewApi")
-    void loadRingtonePermissions() {
-        final List<CustomRingtone> ringtones = getMutableCustomRingtones();
-        if (ringtones.isEmpty()) {
-            return;
-        }
-
-        final List<UriPermission> uriPermissions = mContext.getContentResolver().getPersistedUriPermissions();
-        final Set<Uri> permissions = new ArraySet<>(uriPermissions.size());
-        for (UriPermission uriPermission : uriPermissions) {
-            permissions.add(uriPermission.getUri());
-        }
-
-        for (ListIterator<CustomRingtone> i = ringtones.listIterator(); i.hasNext(); ) {
-            final CustomRingtone ringtone = i.next();
-            i.set(ringtone.setHasPermissions(permissions.contains(ringtone.getUri())));
-        }
-    }
-
     void loadRingtoneTitles() {
         // Early return if the cache is already primed.
-        if (!mRingtoneTitles.isEmpty()) {
+        if (mIsCachePrimed) {
             return;
         }
 
@@ -247,6 +226,8 @@ public final class RingtoneModel {
                 final Uri ringtoneUri = ringtoneManager.getRingtoneUri(cursor.getPosition());
                 mRingtoneTitles.put(ringtoneUri, ringtoneTitle);
             }
+
+            mIsCachePrimed = true;
         } catch (Throwable throwable) {
             // best attempt only
             LogUtils.e("Error loading ringtone title cache", throwable);
@@ -276,18 +257,26 @@ public final class RingtoneModel {
         String title = mRingtoneTitles.get(uri);
 
         if (title == null) {
-            // This is slow because a media player is created during Ringtone object creation.
-            final Ringtone ringtone = RingtoneManager.getRingtone(mContext, uri);
-            if (ringtone == null) {
-                LogUtils.e("No ringtone for uri: %s", uri);
-                return localizedContext.getString(R.string.unknown_ringtone_title);
+            title = uri.getQueryParameter("title");
+
+            if (title == null || title.trim().isEmpty()) {
+                // This is slow because a media player is created during Ringtone object creation.
+                final Ringtone ringtone = RingtoneManager.getRingtone(mContext, uri);
+                if (ringtone == null) {
+                    LogUtils.e("No ringtone for uri: %s", uri);
+                    return localizedContext.getString(R.string.unknown_ringtone_title);
+                }
+
+                // Cache the title for later use.
+                title = ringtone.getTitle(mContext);
             }
 
-            // Cache the title for later use.
-            title = ringtone.getTitle(mContext);
-            mRingtoneTitles.put(uri, title);
+            if (DeviceUtils.isUserUnlocked(mContext)) {
+                mRingtoneTitles.put(uri, title);
+            }
         }
-        return title;
+
+        return title != null ? title : localizedContext.getString(R.string.unknown_ringtone_title);
     }
 
     private List<CustomRingtone> getMutableCustomRingtones() {

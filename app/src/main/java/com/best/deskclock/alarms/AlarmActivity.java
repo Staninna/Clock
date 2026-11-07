@@ -157,6 +157,7 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
     private boolean mReceiverRegistered = false;
     private boolean mPowerBtnReceiverRegistered = false;
     private boolean mServiceBound;
+    private boolean mShouldLockAlarmButtons;
     private boolean mIsSnoozeSelectorDisplayed;
     private String[] mSnoozeSelectorEntries;
     private int[] mSnoozeSelectorValues;
@@ -258,6 +259,7 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
         mVolumeBehavior = SettingsDAO.getAlarmVolumeButtonBehavior(getPrefs());
         mPowerBehavior = SettingsDAO.getAlarmPowerButtonBehavior(getPrefs());
         mHeadphonesButtonBehavior = SettingsDAO.getHeadphonesButtonBehavior(getPrefs());
+        mShouldLockAlarmButtons = SettingsDAO.shouldLockAlarmButtonsWithProximitySensor(getPrefs());
 
         getWindow().setBackgroundDrawable(new ColorDrawable(alarmBackgroundColor));
 
@@ -347,8 +349,10 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             return;
         }
 
-        if (mSensorManager != null && mProximitySensor != null) {
-            mSensorManager.registerListener(this, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
+        if (mShouldLockAlarmButtons) {
+            if (mSensorManager != null && mProximitySensor != null) {
+                mSensorManager.registerListener(this, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }
         }
 
         if (!mReceiverRegistered) {
@@ -630,6 +634,10 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
 
     @Override
     public void onSensorChanged(@NonNull SensorEvent event) {
+        if (!mShouldLockAlarmButtons) {
+            return;
+        }
+
         if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
             float distance = event.values[0];
             boolean isCovered = distance < mProximitySensor.getMaximumRange();
@@ -1422,7 +1430,7 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
                 action = R.string.action_dismiss;
             }
 
-            displayAlarmActionMessage(titleResId, null, getString(titleResId));
+            finishWithActionMessage(titleResId, null, getString(titleResId), true);
 
             AppExecutors.getDiskIO().execute(() ->
                 AlarmStateManager.deleteInstanceAndUpdateParent(appContext, getPrefs(), currentInstance, false)
@@ -1434,7 +1442,7 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             final String snoozeText = AlarmUtils.getSnoozeText(this, snoozeDuration, false);
             final String accessibilityText = getString(R.string.alarm_alert_snooze_duration_message, snoozeText);
 
-            displayAlarmActionMessage(R.string.alarm_alert_snoozed_text, snoozeText, accessibilityText);
+            finishWithActionMessage(R.string.alarm_alert_snoozed_text, snoozeText, accessibilityText, false);
 
             AppExecutors.getDiskIO().execute(() ->
                 AlarmStateManager.setSnoozeState(appContext, getPrefs(), currentInstance, false)
@@ -1468,7 +1476,7 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             action = R.string.action_dismiss;
         }
 
-        displayAlarmActionMessage(titleResId, null, getString(titleResId));
+        finishWithActionMessage(titleResId, null, getString(titleResId), true);
 
         AppExecutors.getDiskIO().execute(() ->
             AlarmStateManager.deleteInstanceAndUpdateParent(appContext, getPrefs(), currentInstance, false)
@@ -1602,10 +1610,23 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
     }
 
     /**
-     * Display a message after snoozing or dismissing the alarm.
+     * Displays a confirmation message after snoozing or dismissing the alarm.
+     * Optionally launches the post-alarm task (e.g., opening a website or an app)
+     * just before finishing the activity.
+     *
+     * @param titleResId        the resource ID of the title text to display
+     * @param descriptionText   the description text to display, or null if none
+     * @param accessibilityText the text to be spoken by accessibility services
+     * @param shouldLaunchTask  {@code true} to launch the associated task before closing, {@code false} otherwise
      */
-    private void displayAlarmActionMessage(int titleResId, @Nullable String descriptionText, @NonNull String accessibilityText) {
+    private void finishWithActionMessage(int titleResId, @Nullable String descriptionText, @NonNull String accessibilityText,
+                                         boolean shouldLaunchTask) {
+
         if (SettingsDAO.isAlarmActionMessageHidden(getPrefs())) {
+            if (shouldLaunchTask) {
+                AlarmUtils.launchTask(this, mAlarm);
+            }
+
             finish();
             return;
         }
@@ -1633,7 +1654,13 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             .setDuration(ALERT_REVEAL_DURATION_MILLIS)
             .withEndAction(() -> {
                 ViewCompat.setStateDescription(mBinding.actionMessageView, accessibilityText);
-                mHandler.postDelayed(this::finish, ALERT_DISMISS_DELAY_MILLIS);
+                mHandler.postDelayed(() -> {
+                    if (shouldLaunchTask) {
+                        AlarmUtils.launchTask(this, mAlarm);
+                    }
+
+                    finish();
+                }, ALERT_DISMISS_DELAY_MILLIS);
             })
             .start();
     }

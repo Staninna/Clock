@@ -72,6 +72,7 @@ import com.best.deskclock.dialogfragment.AlarmDelayPickerDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmMathHardnessLevelDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmMissedRepeatLimitDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmSnoozeDurationDialogFragment;
+import com.best.deskclock.dialogfragment.AlarmTaskDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmTimeZoneDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmVolumeDialogFragment;
 import com.best.deskclock.dialogfragment.AutoSilenceDurationDialogFragment;
@@ -99,6 +100,7 @@ import com.best.deskclock.utils.ClockUtils;
 import com.best.deskclock.utils.DeviceUtils;
 import com.best.deskclock.utils.FileUtils;
 import com.best.deskclock.utils.FormattedTextUtils;
+import com.best.deskclock.utils.PermissionUtils;
 import com.best.deskclock.utils.RingtoneUtils;
 import com.best.deskclock.utils.SdkUtils;
 import com.best.deskclock.utils.ThemeUtils;
@@ -463,6 +465,12 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             saveAlarmSettings();
         }
 
+        // Prevent the search bar from collapsing by ignoring the automatic menu invalidation
+        // triggered when the bottom sheet is dismissed.
+        if (getActivity() instanceof DeskClock deskClock) {
+            deskClock.setIgnoreNextMenuInvalidation(true);
+        }
+
         // When the per-alarm volume feature is enabled, AlarmFragment temporarily "freezes"
         // its volume warning banner.
         // This prevents the banner from glitching or disappearing when the user tests
@@ -523,6 +531,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         bindVibrator();
         bindVibrationPattern();
         bindFlash();
+        bindDisableDND();
         bindDeleteAlarmAfterUse();
         bindAutoSilenceValue();
         bindSnoozeDurationValue();
@@ -532,6 +541,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         bindCrescendoDuration();
         bindAlarmVolume();
         bindSpace();
+        bindAlarmTask();
         bindAlarmBackgroundImage();
         bindBlurIntensity();
         bindLockAlarm();
@@ -966,6 +976,22 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         });
     }
 
+    private void bindDisableDND() {
+        if (!PermissionUtils.isDNDPermissionEnabled(requireContext())) {
+            mBinding.dndOnOff.setVisibility(GONE);
+            return;
+        }
+
+        mBinding.dndOnOff.setVisibility(VISIBLE);
+        mBinding.dndOnOff.setOnCheckedChangeListener(null);
+        mBinding.dndOnOff.setChecked(mAlarm.disableDND);
+        mBinding.dndOnOff.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Utils.performHapticFeedback(buttonView, mIsVibrationEnabled, HapticFeedbackConstantsCompat.VIRTUAL_KEY);
+            Events.sendAlarmEvent(R.string.action_toggle_dnd, R.string.label_deskclock);
+            mAlarm.disableDND = isChecked;
+        });
+    }
+
     private void bindAutoSilenceValue() {
         if (SettingsDAO.isPerAlarmAutoSilenceDisabled(mPrefs)) {
             mBinding.autoSilenceDurationLayout.setVisibility(GONE);
@@ -1294,6 +1320,23 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         mBinding.space.setVisibility(VISIBLE);
     }
 
+    private void bindAlarmTask() {
+        if (!TextUtils.isEmpty(mAlarm.taskName)) {
+            mBinding.taskValue.setText(mAlarm.taskName);
+        } else if (!TextUtils.isEmpty(mAlarm.taskUrl)) {
+            mBinding.taskValue.setText(mAlarm.taskUrl);
+        } else {
+            mBinding.taskValue.setText(R.string.label_off);
+        }
+
+        mBinding.taskLayout.setOnClickListener(v -> {
+            Events.sendAlarmEvent(R.string.action_set_alarm_task, R.string.label_deskclock);
+
+            final AlarmTaskDialogFragment fragment = AlarmTaskDialogFragment.newInstance(mAlarm.taskName, mAlarm.taskUrl);
+            AlarmTaskDialogFragment.show(getChildFragmentManager(), fragment);
+        });
+    }
+
     private void bindAlarmBackgroundImage() {
         if (!SettingsDAO.isPerAlarmBackgroundImageEnable(mPrefs)) {
             mBinding.alarmBackgroundImageLayout.setVisibility(GONE);
@@ -1535,6 +1578,13 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             (requestKey, bundle) -> {
                 mAlarm.alarmVolume = bundle.getInt(AlarmVolumeDialogFragment.RESULT_VOLUME_VALUE);
                 bindAlarmVolume();
+            });
+
+        childFragmentManager.setFragmentResultListener(AlarmTaskDialogFragment.REQUEST_KEY, this,
+            (requestKey, bundle) -> {
+                mAlarm.taskName = bundle.getString(AlarmTaskDialogFragment.RESULT_NAME);
+                mAlarm.taskUrl = bundle.getString(AlarmTaskDialogFragment.RESULT_URL);
+                bindAlarmTask();
             });
 
         childFragmentManager.setFragmentResultListener(BlurIntensityDialogFragment.REQUEST_KEY, this,
@@ -1901,7 +1951,8 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             mBinding.vibrateOnOff,
             mBinding.vibrationPatternLayout,
             mBinding.flashOnOff,
-            mBinding.deleteAlarmAfterUseLayout
+            mBinding.deleteAlarmAfterUseLayout,
+            mBinding.dndOnOff
         );
     }
 
@@ -1919,7 +1970,8 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             mBinding.mathHardnessLevelLayout,
             mBinding.mathProblemCountLayout,
             mBinding.crescendoDurationLayout,
-            mBinding.alarmVolumeLayout
+            mBinding.alarmVolumeLayout,
+            mBinding.taskLayout
         );
     }
 

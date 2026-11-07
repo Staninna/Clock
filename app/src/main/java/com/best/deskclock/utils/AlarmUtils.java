@@ -9,9 +9,13 @@ package com.best.deskclock.utils;
 import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MATH_HARDNESS_LEVEL;
 import static com.best.deskclock.settings.PreferencesDefaultValues.MAX_MATH_PROBLEM_COUNT;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
@@ -29,6 +33,7 @@ import com.best.deskclock.R;
 import com.best.deskclock.alarms.AlarmMathChallenge;
 import com.best.deskclock.data.DataModel;
 import com.best.deskclock.data.SettingsDAO;
+import com.best.deskclock.events.Events;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.uicomponents.toast.CustomToast;
@@ -635,4 +640,47 @@ public class AlarmUtils {
 
         return hasMathMission(prefs, alarm);
     }
+
+    /**
+     * Opens the website or launches the application associated with the alarm's task.
+     *
+     * <p>Does nothing if the task URL is empty, if the application is not installed,
+     * or if the device is currently locked.</p>
+     *
+     * @param context the context used to start the activity
+     * @param alarm   the alarm containing the task URL or application package name
+     */
+    public static void launchTask(@NonNull Context context, @Nullable Alarm alarm) {
+        if (alarm == null || TextUtils.isEmpty(alarm.taskUrl) || !DeviceUtils.isUserUnlocked(context)) {
+            return;
+        }
+
+        String url = alarm.taskUrl.trim();
+
+        try {
+            if (url.startsWith("app://")) {
+                String packageName = url.substring(6);
+                PackageManager pm = context.getPackageManager();
+                Intent launchIntent = pm.getLaunchIntentForPackage(packageName);
+
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(launchIntent);
+                    Events.sendAlarmEvent(R.string.action_launch_alarm_app, R.string.label_deskclock);
+                } else {
+                    LogUtils.e("Application not found: " + packageName);
+                }
+            } else {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                Events.sendAlarmEvent(R.string.action_launch_alarm_task, R.string.label_deskclock);
+            }
+        } catch (ActivityNotFoundException e) {
+            LogUtils.e("No application can open this: " + url, e);
+        } catch (Exception e) {
+            LogUtils.e("Unexpected error", e);
+        }
+    }
+
 }

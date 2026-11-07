@@ -25,6 +25,8 @@
             android:layout_height="wrap_content"
             app:titleMarginStart="14dp"
             app:titleTextAppearance="?attr/textAppearanceTitleLarge"
+            app:collapseIcon="@drawable/ic_arrow_back"
+            app:collapseContentDescription="@string/label_back"
             tools:ignore="RtlSymmetry"
             tools:title="Alarm">
 
@@ -43,7 +45,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:importantForAccessibility="no"
-            android:saveEnabled="false" />
+            android:saveEnabled="false"
+            android:overScrollMode="never" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/desk_clock_button_layout"

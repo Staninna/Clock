@@ -447,6 +447,24 @@
             app:singleLineTitle="false" />
 
         <SwitchPreferenceCompat
+            android:key="key_enable_alarm_proximity_sensor"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/proximity_sensor_title"
+            android:summary="@string/proximity_sensor_summary"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:key="key_disable_DND_for_triggered_alarm"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/disable_DND_for_triggered_alarm_title"
+            android:summary="@string/alarm_settings_general_summary"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
             android:key="key_turn_on_back_flash_for_triggered_alarm"
             android:layout="@layout/settings_preference_layout"
             android:title="@string/turn_on_back_flash_for_triggered_alarm_title"

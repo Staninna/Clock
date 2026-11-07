@@ -255,6 +255,24 @@ public final class ClockContract {
          * Type: TEXT
          */
         String CATEGORY_IDS = "categoryIds";
+
+        /**
+         * The name of the task to be performed after dismissing/snoozing the alarm
+         * Type: STRING
+         */
+        String TASK_NAME = "taskName";
+
+        /**
+         * The URL of the task to be performed after dismissing/snoozing the alarm
+         * Type: STRING
+         */
+        String TASK_URL = "taskURL";
+
+        /**
+         * True if "Do Not Disturb" mode should be disabled.
+         * <p>Type: BOOLEAN</p>
+         */
+        String DISABLE_DND = "disableDND";
     }
 
     /**

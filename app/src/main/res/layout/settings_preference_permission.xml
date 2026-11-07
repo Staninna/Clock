@@ -2,6 +2,7 @@
 <!--
     SPDX-License-Identifier: GPL-3.0-only
 -->
+
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -41,7 +42,8 @@
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@null"
-            android:src="@drawable/ic_about"
+            android:src="@drawable/ic_help"
+            app:tint="?attr/colorOnSurface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@android:id/title"
             tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
@@ -67,12 +69,12 @@
             android:layout_marginEnd="10dp"
             android:paddingVertical="4dp"
             android:gravity="center_vertical"
-            android:text="@string/permission_highly_recommended"
             android:textSize="16sp"
-            android:textColor="@color/colorAlert"
             app:layout_constraintStart_toEndOf="@+id/requirement_title"
             app:layout_constraintEnd_toStartOf="@+id/image"
             app:layout_constraintTop_toBottomOf="@android:id/title"
+            tools:text="@string/permission_highly_recommended"
+            tools:textColor="@color/colorAlert"
             tools:ignore="TextContrastCheck" />
 
         <com.google.android.material.textview.MaterialTextView

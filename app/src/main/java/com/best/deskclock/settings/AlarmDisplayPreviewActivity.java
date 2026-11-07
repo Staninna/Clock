@@ -968,7 +968,7 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
             Utils.executeVibrations(mVibrator, new long[]{700, 200, 100, 500}, -1);
         }
 
-        displayAlarmActionMessage(R.string.alarm_alert_snoozed_text,
+        finishWithActionMessage(R.string.alarm_alert_snoozed_text,
             AlarmUtils.getSnoozeText(this, mSnoozeSelectorIndex == 0 ? DEFAULT_SNOOZE_VALUE : mSnoozeMinutes, false));
     }
 
@@ -981,7 +981,7 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
             Utils.executeVibrations(mVibrator, new long[]{700, 500}, -1);
         }
 
-        displayAlarmActionMessage(R.string.alarm_alert_off_text, null);
+        finishWithActionMessage(R.string.alarm_alert_off_text, null);
     }
 
     /**
@@ -1057,7 +1057,7 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
     /**
      * Display a message after snoozing or dismissing the alarm.
      */
-    private void displayAlarmActionMessage(int titleResId, @Nullable String descriptionText) {
+    private void finishWithActionMessage(int titleResId, @Nullable String descriptionText) {
         if (SettingsDAO.isAlarmActionMessageHidden(getPrefs())) {
             finishActivity();
             return;

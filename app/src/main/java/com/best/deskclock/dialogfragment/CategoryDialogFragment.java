@@ -46,7 +46,7 @@ import java.util.Objects;
 public class CategoryDialogFragment extends DialogFragment {
 
     /**
-     * The tag that identifies instances of CategoryDialogFragment in the fragment manager.
+     * The tag that identifies instances of {@link CategoryDialogFragment} in the fragment manager.
      */
     public static final String TAG = "category_dialog";
 
@@ -177,7 +177,7 @@ public class CategoryDialogFragment extends DialogFragment {
             if (getDialog() != null) {
                 Utils.showKeyboard(getDialog().getWindow(), mBinding.edit);
             }
-        }, Utils.UI_SETTLE_DELAY_MS);
+        }, Utils.UI_SETTLE_SHORT_DELAY_MS);
     }
 
     @Override

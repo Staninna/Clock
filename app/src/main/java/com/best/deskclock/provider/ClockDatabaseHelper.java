@@ -31,7 +31,7 @@ class ClockDatabaseHelper extends SQLiteOpenHelper {
     static final String INSTANCES_TABLE_NAME = "alarm_instances";
     static final String CATEGORIES_TABLE_NAME = "alarm_categories";
 
-    private static final int DATABASE_VERSION = 32;
+    private static final int DATABASE_VERSION = 34;
     private static final int MINIMUM_SUPPORTED_VERSION = 15;
 
     public ClockDatabaseHelper(@Nullable Context context) {
@@ -79,7 +79,10 @@ class ClockDatabaseHelper extends SQLiteOpenHelper {
             ClockContract.AlarmsColumns.TIMEZONE + " TEXT DEFAULT '', " +
             ClockContract.AlarmsColumns.CATEGORY_IDS + " TEXT NOT NULL DEFAULT ',0,', " +
             ClockContract.AlarmsColumns.MATH_PROBLEM_COUNT + " INTEGER NOT NULL DEFAULT 0, " +
-            ClockContract.AlarmsColumns.MATH_CHALLENGE_ENABLED + " INTEGER NOT NULL DEFAULT 1);");
+            ClockContract.AlarmsColumns.MATH_CHALLENGE_ENABLED + " INTEGER NOT NULL DEFAULT 1, " +
+            ClockContract.AlarmsColumns.TASK_NAME + " TEXT NOT NULL DEFAULT '', " +
+            ClockContract.AlarmsColumns.TASK_URL + " TEXT NOT NULL DEFAULT '', " +
+            ClockContract.AlarmsColumns.DISABLE_DND + " INTEGER NOT NULL DEFAULT 0);");
 
         LogUtils.i("Alarms Table created");
     }
@@ -321,8 +324,7 @@ class ClockDatabaseHelper extends SQLiteOpenHelper {
         }
 
         if (oldVersion < 29) {
-            db.execSQL("ALTER TABLE " + ALARMS_TABLE_NAME + " ADD COLUMN " + ClockContract.AlarmsColumns.TIMEZONE
-                + " TEXT DEFAULT '';");
+            db.execSQL("ALTER TABLE " + ALARMS_TABLE_NAME + " ADD COLUMN " + ClockContract.AlarmsColumns.TIMEZONE + " TEXT DEFAULT '';");
 
             db.execSQL("ALTER TABLE " + INSTANCES_TABLE_NAME + " ADD COLUMN " + ClockContract.InstancesColumns.TIMEZONE
                 + " TEXT DEFAULT '';");
@@ -356,6 +358,26 @@ class ClockDatabaseHelper extends SQLiteOpenHelper {
             }
 
             LogUtils.i("mathChallengeEnabled column added for version 32 upgrade.");
+        }
+
+        if (oldVersion < 33) {
+            if (!hasColumn(db, ALARMS_TABLE_NAME, ClockContract.AlarmsColumns.TASK_NAME)) {
+                db.execSQL("ALTER TABLE " + ALARMS_TABLE_NAME + " ADD COLUMN " + ClockContract.AlarmsColumns.TASK_NAME + " TEXT DEFAULT '';");
+            }
+            if (!hasColumn(db, ALARMS_TABLE_NAME, ClockContract.AlarmsColumns.TASK_URL)) {
+                db.execSQL("ALTER TABLE " + ALARMS_TABLE_NAME + " ADD COLUMN " + ClockContract.AlarmsColumns.TASK_URL + " TEXT DEFAULT '';");
+            }
+
+            LogUtils.i("taskName and taskUrl columns added for version 33 upgrade.");
+        }
+
+        if (oldVersion < 34) {
+            if (!hasColumn(db, ALARMS_TABLE_NAME, ClockContract.AlarmsColumns.DISABLE_DND)) {
+                db.execSQL("ALTER TABLE " + ALARMS_TABLE_NAME + " ADD COLUMN " + ClockContract.AlarmsColumns.DISABLE_DND
+                    + " INTEGER NOT NULL DEFAULT 0;");
+            }
+
+            LogUtils.i("disableDND column added for version 34 upgrade.");
         }
     }
 

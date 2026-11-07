@@ -106,12 +106,16 @@
     <string name="action_set_vibration_pattern">Set Vibration Pattern</string>
     <string name="action_set_math_hardness_level">Set Math Hardness Level</string>
     <string name="action_toggle_flash">Toggle Flash</string>
+    <string name="action_toggle_dnd">Toggle DND</string>
     <string name="action_delete_alarm_after_use">Delete Alarm After Use</string>
     <string name="action_set_auto_silence_duration">Set Auto Silence Duration</string>
     <string name="action_set_snooze_duration">Set Snooze Duration</string>
     <string name="action_set_missed_alarm_repeat_limit">Set Missed Alarm Repeat Limit</string>
     <string name="action_set_crescendo_duration">Set Crescendo Duration</string>
     <string name="action_set_alarm_volume">Set Alarm Volume</string>
+    <string name="action_set_alarm_task">Set Alarm Task</string>
+    <string name="action_launch_alarm_task">Launch Alarm Task</string>
+    <string name="action_launch_alarm_app">Launch Alarm App</string>
 
     <!-- Label names for events describe the entity responsible for the event. -->
     <string name="label_deskclock">DeskClock</string>

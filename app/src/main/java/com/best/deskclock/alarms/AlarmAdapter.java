@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.best.deskclock.data.Weekdays;
@@ -18,23 +19,28 @@ import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.uidata.UiConfig;
 import com.best.deskclock.utils.ClockUtils;
 import com.best.deskclock.utils.ThemeUtils;
+import com.best.deskclock.utils.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class AlarmAdapter extends RecyclerView.Adapter<AlarmItemViewHolder> {
 
     private static final String PAYLOAD_UPDATE_BACKGROUND = "PAYLOAD_UPDATE_BACKGROUND";
+    private static final String PAYLOAD_UPDATE_SETTINGS = "PAYLOAD_UPDATE_SETTINGS";
 
     private UiConfig.Fonts mFonts;
     private final UiConfig.DateFormat mDateFormat;
     private final UiConfig.Screen mScreen;
     private final UiConfig.Haptics mHaptics;
     private List<AlarmItemHolder> mItems = new ArrayList<>();
+    private List<AlarmItemHolder> mAllItems = new ArrayList<>();
+    private String mCurrentQuery = "";
     private final AlarmStateProvider mStateProvider;
     private Weekdays.Order mWeekdayOrder;
     private boolean mIs24HourMode;
@@ -124,8 +130,15 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmItemViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull AlarmItemViewHolder holder, int position, @NonNull List<Object> payloads) {
-        if (payloads.contains(PAYLOAD_UPDATE_BACKGROUND)) {
-            holder.updateBackground();
+        if (!payloads.isEmpty()) {
+            if (payloads.contains(PAYLOAD_UPDATE_SETTINGS)) {
+                holder.applySettings();
+
+                AlarmItemHolder itemHolder = mItems.get(position);
+                holder.bind(itemHolder);
+            } else if (payloads.contains(PAYLOAD_UPDATE_BACKGROUND)) {
+                holder.updateBackground();
+            }
         } else {
             super.onBindViewHolder(holder, position, payloads);
         }
@@ -133,6 +146,8 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmItemViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull AlarmItemViewHolder holder, int position) {
+        holder.applySettings();
+
         AlarmItemHolder itemHolder = mItems.get(position);
         holder.bind(itemHolder);
     }
@@ -147,26 +162,21 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmItemViewHolder> {
         return mItems.get(position).itemId;
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    public void updateFonts(@NonNull UiConfig.Fonts fonts) {
+    public void updateConfiguration(@NonNull UiConfig.Fonts fonts, boolean is24HourMode, @NonNull Weekdays.Order weekdayOrder) {
+        boolean hasChanged = (mIs24HourMode != is24HourMode)
+            || (mWeekdayOrder != weekdayOrder)
+            || !Objects.equals(mFonts, fonts);
+
         mFonts = fonts;
-        generateTimeFormats();
-        notifyDataSetChanged();
-    }
+        mIs24HourMode = is24HourMode;
+        mWeekdayOrder = weekdayOrder;
 
-    @SuppressLint("NotifyDataSetChanged")
-    public void updateTimeFormat(boolean is24HourMode) {
-        if (mIs24HourMode != is24HourMode) {
-            mIs24HourMode = is24HourMode;
-            notifyDataSetChanged();
-        }
-    }
+        if (hasChanged) {
+            generateTimeFormats();
 
-    @SuppressLint("NotifyDataSetChanged")
-    public void updateWeekdayOrder(@NonNull Weekdays.Order weekdayOrder) {
-        if (mWeekdayOrder != weekdayOrder) {
-            mWeekdayOrder = weekdayOrder;
-            notifyDataSetChanged();
+            if (getItemCount() > 0) {
+                notifyItemRangeChanged(0, getItemCount(), PAYLOAD_UPDATE_SETTINGS);
+            }
         }
     }
 
@@ -194,12 +204,41 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmItemViewHolder> {
             }
         }
 
-        mItems = items;
+        mAllItems = new ArrayList<>(items);
+
+        applyFilter(mCurrentQuery);
+    }
+
+    public void filter(@Nullable String query) {
+        mCurrentQuery = query == null ? "" : query;
+
+        applyFilter(mCurrentQuery);
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void applyFilter(@NonNull String query) {
+        if (query.trim().isEmpty()) {
+            mItems = new ArrayList<>(mAllItems);
+        } else {
+            mItems = new ArrayList<>();
+
+            String cleanedQuery = Utils.removeSpecialCharacters(query).toLowerCase(mDateFormat.locale());
+
+            for (AlarmItemHolder holder : mAllItems) {
+                if (holder.cleanedLabel.contains(cleanedQuery)) {
+                    mItems.add(holder);
+                }
+            }
+        }
+
         notifyDataSetChanged();
     }
 
     public void removeItem(@NonNull AlarmItemHolder itemHolder) {
+        mAllItems.remove(itemHolder);
+
         int position = mItems.indexOf(itemHolder);
+
         if (position != -1) {
             mItems.remove(position);
             notifyItemRemoved(position);
@@ -215,6 +254,10 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmItemViewHolder> {
             for (int i = fromPosition; i > toPosition; i--) {
                 Collections.swap(mItems, i, i - 1);
             }
+        }
+
+        if (mCurrentQuery.trim().isEmpty()) {
+            mAllItems = new ArrayList<>(mItems);
         }
 
         notifyItemMoved(fromPosition, toPosition);

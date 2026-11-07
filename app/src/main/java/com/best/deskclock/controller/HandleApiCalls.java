@@ -669,6 +669,9 @@ public class HandleApiCalls extends Activity {
         alarm.lock = false;
         alarm.timeZone = "";
         alarm.categoryIds = new long[]{Alarm.DEFAULT_CATEGORY_ID};
+        alarm.taskName = "";
+        alarm.taskUrl = "";
+        alarm.disableDND = SettingsDAO.shouldDisableDNDForTriggeredAlarm(prefs);
     }
 
     @NonNull

@@ -52,6 +52,7 @@ import com.best.deskclock.R;
 import com.best.deskclock.data.DataModel;
 import com.best.deskclock.uicomponents.CustomDialog;
 
+import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -63,7 +64,19 @@ public class Utils {
      * A short delay (in milliseconds) used to let the UI settle before executing certain actions,
      * such as showing the soft keyboard or requesting focus.
      */
-    public static final long UI_SETTLE_DELAY_MS = 200;
+    public static final long UI_SETTLE_SHORT_DELAY_MS = 200;
+
+    /**
+     * A medium delay (in milliseconds) used to let the UI settle before executing certain actions,
+     * such as showing the soft keyboard or requesting focus.
+     */
+    public static final long UI_SETTLE_MEDIUM_DELAY_MS = 400;
+
+    /**
+     * A long delay (in milliseconds) used to let the UI settle before executing certain actions,
+     * such as showing the soft keyboard or requesting focus.
+     */
+    public static final long UI_SETTLE_LONG_DELAY_MS = 600;
 
     /**
      * The minimum time interval in milliseconds required between consecutive clicks.
@@ -300,6 +313,21 @@ public class Utils {
                 AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(languageCode));
             }
         }
+    }
+
+    /**
+     * Strips out any characters considered optional for matching purposes. These include spaces,
+     * dashes, periods, apostrophes and accents.
+     *
+     * @param token a search term
+     * @return the given {@code token} without any characters considered optional when matching
+     */
+    @NonNull
+    public static String removeSpecialCharacters(@NonNull String token) {
+        String normalized = Normalizer.normalize(token, Normalizer.Form.NFD);
+        String withoutAccents = normalized.replaceAll("\\p{M}+", "");
+
+        return withoutAccents.replaceAll("[ -.']", "");
     }
 
     /**
