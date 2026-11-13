@@ -410,6 +410,8 @@ public final class AlarmStateManager extends BroadcastReceiver {
 
         // Update alarm state in db
         ContentResolver contentResolver = context.getContentResolver();
+        // Re-firing an instance that already rings (e.g. after a time change) is not a new ring.
+        final boolean wasAlreadyFiring = instance.mAlarmState == AlarmInstance.FIRED_STATE;
         instance.mAlarmState = AlarmInstance.FIRED_STATE;
 
         // If the alarm ringtone is set to "Random", assign a random ringtone uri to the alarm.
@@ -432,8 +434,6 @@ public final class AlarmStateManager extends BroadcastReceiver {
 
         Events.sendAlarmEvent(R.string.action_fire, 0);
 
-        HomeAssistant.onAlarmRinging(context, instance);
-
         boolean hasMathMission = AlarmUtils.hasMathMission(
             alarm, SettingsDAO.getAlarmMathHardnessLevel(prefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs)
         );
@@ -441,6 +441,10 @@ public final class AlarmStateManager extends BroadcastReceiver {
         Calendar timeout = instance.getTimeout(context, hasMathMission);
         if (timeout != null) {
             scheduleInstanceStateChange(context, prefs, timeout, instance, AlarmInstance.MISSED_STATE);
+        }
+
+        if (!wasAlreadyFiring) {
+            HomeAssistant.onAlarmRinging(context, instance);
         }
 
         // Instance not valid anymore, so find next alarm that will fire and notify system
@@ -908,6 +912,7 @@ public final class AlarmStateManager extends BroadcastReceiver {
         List<AlarmInstance> instances = AlarmInstance.getInstancesByAlarmId(cr, alarmId);
 
         for (AlarmInstance instance : instances) {
+            HomeAssistant.onAlarmInstanceRemoved(context, instance);
             unregisterInstance(context, prefs, instance);
             AlarmInstance.deleteInstance(context.getContentResolver(), instance.mId);
         }

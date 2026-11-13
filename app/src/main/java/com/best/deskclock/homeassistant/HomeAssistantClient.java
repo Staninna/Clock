@@ -151,13 +151,17 @@ public final class HomeAssistantClient {
             return false;
         }
 
+        if (host.contains(":")) {
+            // IPv6 literal: unique local (fc00::/7), link-local or loopback.
+            return !(host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80") || host.equals("::1"));
+        }
+
         boolean local = host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".home")
             || host.endsWith(".internal") || host.endsWith(".home.arpa") || !host.contains(".")
             || host.matches("^(10|127)\\..*")
             || host.matches("^192\\.168\\..*")
             || host.matches("^172\\.(1[6-9]|2[0-9]|3[01])\\..*")
-            || host.matches("^100\\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\\..*") // CGNAT, e.g. Tailscale
-            || host.startsWith("fd") || host.startsWith("fe80") || host.equals("::1");
+            || host.matches("^100\\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\\..*"); // CGNAT, e.g. Tailscale
 
         return !local;
     }

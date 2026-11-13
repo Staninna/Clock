@@ -30,7 +30,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -98,6 +97,16 @@ public final class HomeAssistant {
         onAlarmChanged(context, instance, TYPE_RINGING, STATE_RINGING, null);
     }
 
+    /**
+     * Called when the alarm instances of an alarm are deleted (alarm edited, disabled or deleted):
+     * reports a dismissal if the instance was ringing or snoozed, so the state sensor doesn't stay stuck.
+     */
+    public static void onAlarmInstanceRemoved(@NonNull Context context, @NonNull AlarmInstance instance) {
+        if (instance.mAlarmState == AlarmInstance.FIRED_STATE || instance.mAlarmState == AlarmInstance.SNOOZE_STATE) {
+            onAlarmDismissed(context, instance);
+        }
+    }
+
     public static void onAlarmSnoozed(@NonNull Context context, @NonNull AlarmInstance instance,
                                       @NonNull Calendar snoozeUntil) {
         onAlarmChanged(context, instance, TYPE_SNOOZED, STATE_SNOOZED, snoozeUntil);
@@ -115,43 +124,60 @@ public final class HomeAssistant {
      * Called whenever the next alarm may have changed.
      */
     public static void onNextAlarmChanged(@NonNull Context context, @Nullable AlarmInstance nextAlarm) {
-        final Context appContext = context.getApplicationContext();
-        final SharedPreferences prefs = getDefaultSharedPreferences(appContext);
-        if (!HomeAssistantSettings.isActive(prefs) || !HomeAssistantSettings.shareNextAlarm(prefs)) {
-            return;
-        }
-
-        final JSONObject update = buildNextAlarmUpdate(appContext, prefs, nextAlarm);
-        final String payload = update.toString();
-
-        synchronized (HomeAssistant.class) {
-            long now = System.currentTimeMillis();
-            if (payload.equals(sLastNextAlarmPayload) && now - sLastNextAlarmSentAt < NEXT_ALARM_REFRESH_MS) {
+        try {
+            final Context appContext = context.getApplicationContext();
+            final SharedPreferences prefs = getDefaultSharedPreferences(appContext);
+            if (!HomeAssistantSettings.isActive(prefs) || !HomeAssistantSettings.shareNextAlarm(prefs)) {
                 return;
             }
-            sLastNextAlarmPayload = payload;
-            sLastNextAlarmSentAt = now;
-        }
 
-        run(appContext, "next alarm", client -> client.updateSensors(array(update)));
+            // Built on the background thread: it queries the database.
+            EXECUTOR.execute(() -> {
+                try {
+                    final JSONObject update = buildNextAlarmUpdate(appContext, prefs, nextAlarm);
+                    final String payload = update.toString();
+
+                    synchronized (HomeAssistant.class) {
+                        long now = System.currentTimeMillis();
+                        if (payload.equals(sLastNextAlarmPayload) && now - sLastNextAlarmSentAt < NEXT_ALARM_REFRESH_MS) {
+                            return;
+                        }
+                        sLastNextAlarmPayload = payload;
+                        sLastNextAlarmSentAt = now;
+                    }
+
+                    run(appContext, "next alarm", client -> client.updateSensors(array(update)));
+                } catch (RuntimeException e) {
+                    LogUtils.e("HomeAssistant: unable to prepare the next alarm", e);
+                }
+            });
+        } catch (RuntimeException e) {
+            // Never let the integration interfere with the alarms.
+            LogUtils.e("HomeAssistant: next alarm hook failed", e);
+        }
     }
 
     private static void onAlarmChanged(@NonNull Context context, @NonNull AlarmInstance instance,
                                        @NonNull String eventType, @NonNull String state, @Nullable Calendar snoozeUntil) {
 
-        final Context appContext = context.getApplicationContext();
-        final SharedPreferences prefs = getDefaultSharedPreferences(appContext);
-        if (!HomeAssistantSettings.isActive(prefs) || !HomeAssistantSettings.shareAlarmEvents(prefs)) {
-            return;
+        try {
+            final Context appContext = context.getApplicationContext();
+            final SharedPreferences prefs = getDefaultSharedPreferences(appContext);
+            if (!HomeAssistantSettings.isActive(prefs) || !HomeAssistantSettings.shareAlarmEvents(prefs)) {
+                return;
+            }
+
+            final JSONObject eventData = buildEventData(appContext, prefs, instance, eventType, snoozeUntil);
+            final JSONObject stateUpdate = buildAlarmStateUpdate(prefs, instance, state, snoozeUntil);
+
+            run(appContext, eventType, client -> {
+                client.fireEvent(eventData);
+                client.updateSensors(array(stateUpdate));
+            });
+        } catch (RuntimeException e) {
+            // Never let the integration interfere with the alarm that is ringing, snoozed or dismissed.
+            LogUtils.e("HomeAssistant: alarm hook failed (" + eventType + ")", e);
         }
-
-        final JSONObject eventData = buildEventData(appContext, prefs, instance, eventType, snoozeUntil);
-        final JSONObject stateUpdate = buildAlarmStateUpdate(prefs, instance, state, snoozeUntil);
-
-        run(appContext, eventType, client -> {
-            client.fireEvent(eventData);
-            client.updateSensors(array(stateUpdate));
-        });
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -193,6 +219,11 @@ public final class HomeAssistant {
             } catch (HomeAssistantClient.HomeAssistantException e) {
                 LogUtils.w("HomeAssistant: connection failed: " + e.failure + " " + e.getMessage());
                 main.post(() -> callback.onFailed(e));
+            } catch (RuntimeException e) {
+                LogUtils.e("HomeAssistant: connection failed", e);
+                HomeAssistantClient.HomeAssistantException error = new HomeAssistantClient.HomeAssistantException(
+                    HomeAssistantClient.Failure.NETWORK, 0, e.getMessage(), e);
+                main.post(() -> callback.onFailed(error));
             }
         });
     }
@@ -237,8 +268,12 @@ public final class HomeAssistant {
 
         // Also refresh the next alarm with the usual path.
         EXECUTOR.execute(() -> {
-            AlarmInstance next = AlarmInstance.getNextFiringAlarm(appContext);
-            onNextAlarmChanged(appContext, next);
+            try {
+                AlarmInstance next = AlarmInstance.getNextFiringAlarm(appContext);
+                onNextAlarmChanged(appContext, next);
+            } catch (RuntimeException e) {
+                LogUtils.e("HomeAssistant: unable to refresh the next alarm", e);
+            }
         });
     }
 
@@ -299,6 +334,8 @@ public final class HomeAssistant {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+            } catch (RuntimeException e) {
+                LogUtils.e("HomeAssistant: unable to send " + what, e);
             } finally {
                 if (wakeLock != null && wakeLock.isHeld()) {
                     wakeLock.release();
@@ -323,6 +360,9 @@ public final class HomeAssistant {
             } catch (HomeAssistantClient.HomeAssistantException e) {
                 HomeAssistantSettings.setLastError(prefs, e.failure.name());
                 error = e;
+            } catch (RuntimeException e) {
+                LogUtils.e("HomeAssistant: operation failed", e);
+                error = new HomeAssistantClient.HomeAssistantException(HomeAssistantClient.Failure.NETWORK, 0, e.getMessage(), e);
             }
 
             final HomeAssistantClient.HomeAssistantException result = error;
@@ -440,11 +480,15 @@ public final class HomeAssistant {
         @NonNull
         private JSONObject send(@NonNull String type, @NonNull Object data) throws HomeAssistantClient.HomeAssistantException {
             String webhookId = HomeAssistantSettings.getWebhookId(mPrefs);
+            if (TextUtils.isEmpty(webhookId)) {
+                // Disconnected meanwhile.
+                throw new HomeAssistantClient.HomeAssistantException(HomeAssistantClient.Failure.INVALID_URL, 0, "Disconnected", null);
+            }
             HomeAssistantClient client = new HomeAssistantClient(HomeAssistantSettings.getUrl(mPrefs),
                 HomeAssistantSettings.getToken(mPrefs));
 
             try {
-                return client.sendWebhook(Objects.requireNonNull(webhookId), type, data);
+                return client.sendWebhook(webhookId, type, data);
             } catch (HomeAssistantClient.HomeAssistantException e) {
                 if (e.failure != HomeAssistantClient.Failure.WEBHOOK_GONE || TextUtils.isEmpty(HomeAssistantSettings.getToken(mPrefs))) {
                     throw e;
@@ -452,8 +496,8 @@ public final class HomeAssistant {
 
                 // The device was deleted in Home Assistant: register it again, once.
                 LogUtils.i("HomeAssistant: device removed from Home Assistant, registering again");
-                HomeAssistantSettings.clearWebhook(mPrefs);
                 String newWebhookId = client.registerDevice(buildRegistration(mContext, mPrefs));
+                HomeAssistantSettings.clearWebhook(mPrefs);
                 mPrefs.edit().putString(HomeAssistantSettings.KEY_HA_WEBHOOK_ID, newWebhookId).apply();
 
                 if (!"register_sensor".equals(type)) {
