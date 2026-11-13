@@ -98,6 +98,12 @@ public class BackupAndRestoreManager {
         for (Map.Entry<String, ?> entry : settings.entrySet()) {
             if (entry.getKey() != null) {
                 String key = entry.getKey();
+
+                // The Spotify login must stay on this device
+                if (SpotifyAccount.isPrivateKey(key)) {
+                    continue;
+                }
+
                 // Exclude keys from custom ringtones and the selected alarm ringtone as this causes bugs when restoring.
                 // Also, exclude keys related to images and fonts from the JSON backup. The physical files for these preferences are saved
                 // directly within the ZIP archive.
@@ -117,9 +123,7 @@ public class BackupAndRestoreManager {
                     || key.equals(KEY_DIGITAL_CLOCK_FONT)
                     || key.equals(KEY_SCREENSAVER_DIGITAL_CLOCK_FONT)
                     || key.equals(KEY_SCREENSAVER_BACKGROUND_IMAGE)
-                    || key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)
-                    // The Spotify login must stay on this device
-                    || SpotifyAccount.isPrivateKey(key)) {
+                    || key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)) {
                     continue;
                 }
 
