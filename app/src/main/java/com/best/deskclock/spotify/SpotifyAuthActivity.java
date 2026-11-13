@@ -48,9 +48,16 @@ public class SpotifyAuthActivity extends Activity {
 
             @Override
             public void onFailed(@NonNull String reason) {
-                int message = "access_denied".equals(reason)
-                    ? R.string.spotify_login_cancelled
-                    : R.string.spotify_login_failed;
+                final String message;
+                if ("access_denied".equals(reason)) {
+                    message = getString(R.string.spotify_login_cancelled);
+                } else if (SpotifyAccount.REASON_USER_NOT_ALLOWED.equals(reason)) {
+                    message = getString(R.string.spotify_login_user_not_allowed);
+                } else if ("network".equals(reason)) {
+                    message = getString(R.string.spotify_login_network);
+                } else {
+                    message = getString(R.string.spotify_login_failed_reason, reason);
+                }
                 Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                 finish();
             }

@@ -67,6 +67,9 @@ public final class SpotifyAccount {
 
     private static final long EXPIRY_MARGIN_MS = 60_000;
 
+    /** Login failure: the Spotify account may not use this Spotify app (development mode). */
+    static final String REASON_USER_NOT_ALLOWED = "user_not_allowed";
+
     static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> new Thread(r, "SpotifyAccount"));
 
     /** Result of the login, on the main thread. */
@@ -207,6 +210,8 @@ public final class SpotifyAccount {
         }
 
         EXECUTOR.execute(() -> {
+            // Which step failed, to tell the user what went wrong.
+            String step = "token";
             try {
                 Map<String, String> form = new LinkedHashMap<>();
                 form.put("grant_type", "authorization_code");
@@ -218,6 +223,7 @@ public final class SpotifyAccount {
                 JSONObject tokens = SpotifyWebApi.requestToken(form);
                 // Only log in once the profile (and its Premium status) is known: a half login
                 // would never use the Web API.
+                step = "profile";
                 SpotifyWebApi.Profile profile = SpotifyWebApi.getProfile(tokens.getString("access_token"));
                 saveTokens(prefs, tokens);
                 prefs.edit()
@@ -233,9 +239,19 @@ public final class SpotifyAccount {
             } catch (Exception e) {
                 LogUtils.w("SpotifyAccount: login failed: " + e.getMessage());
                 prefs.edit().remove(KEY_PKCE_VERIFIER).remove(KEY_PKCE_STATE).apply();
-                String reason = e instanceof SpotifyWebApi.SpotifyException se && se.reason != null
-                    ? se.reason
-                    : (e instanceof SpotifyWebApi.SpotifyException se2 && se2.isNetworkError() ? "network" : "unknown");
+                final String reason;
+                if (e instanceof SpotifyWebApi.SpotifyException se) {
+                    if (se.isNetworkError()) {
+                        reason = "network";
+                    } else if ("profile".equals(step) && se.httpCode == 403) {
+                        // Development mode: the account isn't in the app's User Management.
+                        reason = REASON_USER_NOT_ALLOWED;
+                    } else {
+                        reason = step + ": " + (se.reason == null ? "" : se.reason + " ") + "(HTTP " + se.httpCode + ")";
+                    }
+                } else {
+                    reason = step + ": " + e.getClass().getSimpleName();
+                }
                 main.post(() -> callback.onFailed(reason));
             }
         });

@@ -674,7 +674,10 @@
     <!-- %s = user name -->
     <string name="spotify_logged_in_toast">Logged in to Spotify as %s</string>
     <string name="spotify_login_cancelled">Spotify login cancelled</string>
-    <string name="spotify_login_failed">Spotify login failed. Check the Client ID and the redirect URI of your Spotify app.</string>
+    <!-- %s = technical reason given by Spotify -->
+    <string name="spotify_login_failed_reason">Spotify login failed (%s)</string>
+    <string name="spotify_login_user_not_allowed">Spotify refused this account. In the Spotify developer dashboard, add your account under User Management of your app (and check that its owner meets Spotify\'s requirements).</string>
+    <string name="spotify_login_network">Spotify login failed: no connection to Spotify</string>
     <!-- %s = user name -->
     <string name="spotify_logged_in_as_premium">Logged in as %s · Premium</string>
     <!-- %s = user name -->
