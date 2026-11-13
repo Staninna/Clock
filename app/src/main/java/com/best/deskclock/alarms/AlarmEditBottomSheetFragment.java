@@ -73,7 +73,6 @@ import com.best.deskclock.dialogfragment.AlarmMathHardnessLevelDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmMissedRepeatLimitDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmSnoozeDurationDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmTaskDialogFragment;
-import com.best.deskclock.dialogfragment.AlarmTimeZoneDialogFragment;
 import com.best.deskclock.dialogfragment.AlarmVolumeDialogFragment;
 import com.best.deskclock.dialogfragment.AutoSilenceDurationDialogFragment;
 import com.best.deskclock.dialogfragment.BlurIntensityDialogFragment;
@@ -82,6 +81,7 @@ import com.best.deskclock.dialogfragment.LabelDialogFragment;
 import com.best.deskclock.dialogfragment.MaterialTimePickerDialogFragment;
 import com.best.deskclock.dialogfragment.SpinnerDatePickerDialogFragment;
 import com.best.deskclock.dialogfragment.SpinnerTimePickerDialogFragment;
+import com.best.deskclock.dialogfragment.TimeZoneDialogFragment;
 import com.best.deskclock.dialogfragment.VibrationPatternDialogFragment;
 import com.best.deskclock.dialogfragment.VolumeCrescendoDurationDialogFragment;
 import com.best.deskclock.events.Events;
@@ -780,10 +780,8 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         mBinding.timezoneLayout.setOnClickListener(v -> {
             Events.sendAlarmEvent(R.string.action_set_timezone, R.string.label_deskclock);
 
-            final AlarmTimeZoneDialogFragment fragment =
-                AlarmTimeZoneDialogFragment.newInstance(mAlarm.timeZone);
-
-            AlarmTimeZoneDialogFragment.show(getChildFragmentManager(), fragment);
+            final TimeZoneDialogFragment fragment = TimeZoneDialogFragment.newInstance(mAlarm.timeZone);
+            TimeZoneDialogFragment.show(getChildFragmentManager(), fragment);
         });
     }
 
@@ -999,7 +997,8 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
         }
 
         int autoSilenceDuration = mAlarm.autoSilenceDuration;
-        boolean hasMathMission = AlarmUtils.hasMathMission(mPrefs, mAlarm);
+        boolean hasMathMission = AlarmUtils.hasMathMission(mAlarm,
+            SettingsDAO.getAlarmMathHardnessLevel(mPrefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(mPrefs));
 
         mBinding.autoSilenceDurationLayout.setVisibility(VISIBLE);
         mBinding.autoSilenceDurationLayout.setEnabled(!hasMathMission);
@@ -1501,11 +1500,11 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
                 bindCategory();
             });
 
-        childFragmentManager.setFragmentResultListener(AlarmTimeZoneDialogFragment.REQUEST_KEY, this,
+        childFragmentManager.setFragmentResultListener(TimeZoneDialogFragment.REQUEST_KEY, this,
             (requestKey, bundle) -> {
                 boolean wasNotSpecified = !mAlarm.isSpecifiedDate();
 
-                mAlarm.timeZone = bundle.getString(AlarmTimeZoneDialogFragment.RESULT_TIMEZONE, "");
+                mAlarm.timeZone = bundle.getString(TimeZoneDialogFragment.RESULT_TIMEZONE, "");
 
                 // If the alarm has no specified date or if the date is outdated,
                 // its year, month, and day are updated to match "Today" in the new country.

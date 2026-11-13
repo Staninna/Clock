@@ -56,8 +56,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.TextViewCompat;
 
 import com.best.deskclock.R;
-import com.best.deskclock.base.AppExecutors;
 import com.best.deskclock.alarms.AlarmActivity;
+import com.best.deskclock.base.AppExecutors;
 import com.best.deskclock.base.BaseActivity;
 import com.best.deskclock.controller.AlarmMathMissionController;
 import com.best.deskclock.data.DataModel;
@@ -162,13 +162,21 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
         getWindow().setBackgroundDrawable(new ColorDrawable(alarmBackgroundColor));
 
         // Same math challenge as a real alarm; solving it plays the snooze/dismiss animation.
-        mMathMissionController = new AlarmMathMissionController(this, action -> {
-            if (action == AlarmActivity.MISSION_ACTION_SNOOZE) {
-                performSnooze();
-            } else {
-                performDismiss();
+        mMathMissionController = new AlarmMathMissionController(this, getGeneralBoldTypeface(), getDisplayMetrics(),
+            SettingsDAO.isVibrationsEnabled(getPrefs()), new AlarmMathMissionController.Callback() {
+            @Override
+            public void onMissionResolved(int action) {
+                if (action == AlarmActivity.MISSION_ACTION_SNOOZE) {
+                    performSnooze();
+                } else {
+                    performDismiss();
+                }
             }
-        }, getGeneralBoldTypeface());
+
+            @Override
+            public void onMissionCancelled() {
+            }
+        });
 
         initDefaultSnoozeValue();
 
@@ -919,6 +927,7 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
             } else {
                 performDismiss();
             }
+
             return;
         }
 

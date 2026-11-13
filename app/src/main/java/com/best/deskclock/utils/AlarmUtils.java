@@ -12,7 +12,6 @@ import static com.best.deskclock.settings.PreferencesDefaultValues.MAX_MATH_PROB
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -32,7 +31,6 @@ import androidx.core.view.ViewCompat;
 import com.best.deskclock.R;
 import com.best.deskclock.alarms.AlarmMathChallenge;
 import com.best.deskclock.data.DataModel;
-import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.events.Events;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
@@ -86,8 +84,20 @@ public class AlarmUtils {
      * Key to pass the temporary blur intensity value (int) to the preview screen.
      */
     public static final String EXTRA_PREVIEW_BLUR_INTENSITY = "extra_preview_blur_intensity";
+
+    /**
+     * Key to pass the temporary math hardness level to the preview screen.
+     */
     public static final String EXTRA_PREVIEW_MATH_HARDNESS_LEVEL = "extra_preview_math_hardness_level";
+
+    /**
+     * Key to pass the temporary number of math problems (int) to the preview screen.
+     */
     public static final String EXTRA_PREVIEW_MATH_PROBLEM_COUNT = "extra_preview_math_problem_count";
+
+    /**
+     * Key to pass whether the math challenge is enabled for the alarm (boolean) to the preview screen.
+     */
     public static final String EXTRA_PREVIEW_MATH_CHALLENGE_ENABLED = "extra_preview_math_challenge_enabled";
 
     /**
@@ -585,14 +595,16 @@ public class AlarmUtils {
      * alarm is unknown), otherwise the alarm's own level.
      */
     @NonNull
-    public static String getEffectiveMathHardnessLevel(@NonNull SharedPreferences prefs, @Nullable Alarm alarm) {
+    public static String getEffectiveMathHardnessLevel(@Nullable Alarm alarm, @NonNull String mathHardnessLevel,
+                                                       boolean isPerAlarmMathHardnessLevelDisabled) {
+
         if (alarm != null && !alarm.mathChallengeEnabled) {
             // Math challenge switched off for this alarm (e.g. a kitchen timer or bedtime alarm).
             return DEFAULT_MATH_HARDNESS_LEVEL;
         }
 
-        return SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
-            ? SettingsDAO.getAlarmMathHardnessLevel(prefs)
+        return isPerAlarmMathHardnessLevelDisabled || alarm == null
+            ? mathHardnessLevel
             : alarm.mathHardnessLevel;
     }
 
@@ -601,11 +613,12 @@ public class AlarmUtils {
      * the alarm's own count when per-alarm levels are enabled, otherwise the global count; when that
      * is "automatic" (0), the default of the hardness level.
      */
-    public static int getEffectiveMathProblemCount(@NonNull SharedPreferences prefs, @Nullable Alarm alarm,
+    public static int getEffectiveMathProblemCount(@Nullable Alarm alarm, int mathProblemCount,
+                                                   boolean isPerAlarmMathHardnessLevelDisabled,
                                                    @NonNull String mathHardnessLevel) {
 
-        final int count = SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs) || alarm == null
-            ? SettingsDAO.getAlarmMathProblemCount(prefs)
+        final int count = isPerAlarmMathHardnessLevelDisabled || alarm == null
+            ? mathProblemCount
             : alarm.mathProblemCount;
 
         return resolveMathProblemCount(count, mathHardnessLevel);
@@ -624,21 +637,25 @@ public class AlarmUtils {
     /**
      * @return {@code true} if a math challenge must be solved to snooze or dismiss the given alarm.
      */
-    public static boolean hasMathMission(@NonNull SharedPreferences prefs, @Nullable Alarm alarm) {
-        return !DEFAULT_MATH_HARDNESS_LEVEL.equals(getEffectiveMathHardnessLevel(prefs, alarm));
+    public static boolean hasMathMission(@Nullable Alarm alarm, @NonNull String mathHardnessLevel,
+                                         boolean isPerAlarmMathHardnessLevelDisabled) {
+
+        return !DEFAULT_MATH_HARDNESS_LEVEL.equals(getEffectiveMathHardnessLevel(
+            alarm, mathHardnessLevel, isPerAlarmMathHardnessLevelDisabled)
+        );
     }
 
     /**
      * @return {@code true} if a math challenge must be solved to snooze or dismiss the given alarm instance.
      */
-    public static boolean hasMathMission(@NonNull Context context, @NonNull SharedPreferences prefs,
-                                         @Nullable AlarmInstance instance) {
+    public static boolean hasMathMission(@NonNull Context context, @Nullable AlarmInstance instance, @NonNull String mathHardnessLevel,
+                                         boolean isPerAlarmMathHardnessLevelDisabled) {
 
         final Alarm alarm = instance == null || instance.mAlarmId == null
             ? null
             : Alarm.getAlarm(context.getContentResolver(), instance.mAlarmId);
 
-        return hasMathMission(prefs, alarm);
+        return hasMathMission(alarm, mathHardnessLevel, isPerAlarmMathHardnessLevelDisabled);
     }
 
     /**

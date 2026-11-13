@@ -95,6 +95,8 @@
     <string name="category_error">Category already created</string>
     <!-- Description of the "Add category" button -->
     <string name="add_category_description">Add category</string>
+    <!-- Hint displayed in the time zone search bar -->
+    <string name="time_zone_search_hint">Search for a time zone</string>
 
     <!-- ******************* -->
     <!-- **     ALARM     ** -->
@@ -373,8 +375,6 @@
     <string name="math_challenge_progress">Problem %1$d of %2$d</string>
     <!-- Math challenge keypad: content description of the key that deletes the last digit. -->
     <string name="math_challenge_delete_digit">Delete last digit</string>
-    <!-- Math challenge keypad: label of the key that clears the answer. -->
-    <string name="math_challenge_clear">C</string>
     <!-- Math challenge keypad: content description of the key that clears the answer. -->
     <string name="math_challenge_clear_description">Clear answer</string>
 

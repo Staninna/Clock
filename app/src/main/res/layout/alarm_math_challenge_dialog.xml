@@ -82,7 +82,7 @@
             tools:text="448" />
 
         <GridLayout
-            android:id="@+id/keypad"
+            android:id="@+id/math_challenge_keypad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"

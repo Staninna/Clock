@@ -429,7 +429,9 @@ public final class AlarmStateManager extends BroadcastReceiver {
 
         Events.sendAlarmEvent(R.string.action_fire, 0);
 
-        boolean hasMathMission = AlarmUtils.hasMathMission(prefs, alarm);
+        boolean hasMathMission = AlarmUtils.hasMathMission(
+            alarm, SettingsDAO.getAlarmMathHardnessLevel(prefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs)
+        );
 
         Calendar timeout = instance.getTimeout(context, hasMathMission);
         if (timeout != null) {
@@ -785,7 +787,9 @@ public final class AlarmStateManager extends BroadcastReceiver {
         final Calendar currentTime = getCurrentTime();
         final Calendar alarmTime = instance.getAlarmTime();
 
-        boolean hasMathMission = AlarmUtils.hasMathMission(prefs, alarm);
+        boolean hasMathMission = AlarmUtils.hasMathMission(
+            alarm, SettingsDAO.getAlarmMathHardnessLevel(prefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs)
+        );
 
         final Calendar timeoutTime = instance.getTimeout(context, hasMathMission);
         final int notificationReminderTime = SettingsDAO.getAlarmNotificationReminderTime(prefs);

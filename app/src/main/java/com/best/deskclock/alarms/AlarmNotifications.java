@@ -21,6 +21,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.service.notification.StatusBarNotification;
@@ -34,6 +35,7 @@ import androidx.core.content.ContextCompat;
 
 import com.best.deskclock.DeskClock;
 import com.best.deskclock.R;
+import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.utils.AlarmUtils;
@@ -441,7 +443,9 @@ public final class AlarmNotifications {
         // When a math challenge is required, the alarm can only be snoozed or dismissed from the
         // alarm screen: the notification has no snooze/dismiss actions, and swiping it away
         // (possible for ongoing notifications since Android 14) just shows it again.
-        final boolean hasMathMission = AlarmUtils.hasMathMission(getDefaultSharedPreferences(context), alarm);
+        final SharedPreferences prefs = getDefaultSharedPreferences(context);
+        final boolean hasMathMission = AlarmUtils.hasMathMission(
+            alarm, SettingsDAO.getAlarmMathHardnessLevel(prefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs));
 
         // Setup up dismiss action
         Intent dismissIntent = AlarmStateManager.createStateChangeIntent(

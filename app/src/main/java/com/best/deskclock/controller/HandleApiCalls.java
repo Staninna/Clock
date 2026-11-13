@@ -187,7 +187,8 @@ public class HandleApiCalls extends Activity {
 
         final String time = timeFormat.format(instance.getAlarmTime().getTime());
 
-        if (instance.mAlarmState == FIRED_STATE && AlarmUtils.hasMathMission(appContext, prefs, instance)) {
+        if (instance.mAlarmState == FIRED_STATE && AlarmUtils.hasMathMission(appContext, instance,
+            SettingsDAO.getAlarmMathHardnessLevel(prefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs))) {
             // A ringing alarm that requires a math challenge can only be stopped from the alarm screen.
             notifyMathChallengeRequired(context, instance);
             return;
@@ -322,7 +323,8 @@ public class HandleApiCalls extends Activity {
         java.text.DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(activity);
         timeFormat.setTimeZone(alarmInstance.getTimeZone());
 
-        if (AlarmUtils.hasMathMission(activity, prefs, alarmInstance)) {
+        if (AlarmUtils.hasMathMission(activity, alarmInstance,
+            SettingsDAO.getAlarmMathHardnessLevel(prefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs))) {
             // A ringing alarm that requires a math challenge can only be snoozed from the alarm screen.
             notifyMathChallengeRequired(activity, alarmInstance);
             return;

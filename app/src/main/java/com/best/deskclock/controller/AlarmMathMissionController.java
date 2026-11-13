@@ -5,10 +5,11 @@ package com.best.deskclock.controller;
 import static android.view.View.GONE;
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
+import static androidx.core.util.TypedValueCompat.dpToPx;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Typeface;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
@@ -23,8 +24,8 @@ import com.best.deskclock.alarms.AlarmActivity;
 import com.best.deskclock.alarms.AlarmMathChallenge;
 import com.best.deskclock.databinding.AlarmMathChallengeDialogBinding;
 import com.best.deskclock.uicomponents.CustomDialog;
+import com.best.deskclock.utils.Utils;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.color.MaterialColors;
 import com.google.android.material.shape.ShapeAppearanceModel;
 
 import java.util.Random;
@@ -53,12 +54,17 @@ public class AlarmMathMissionController {
     private final Context mContext;
     private final Callback mCallback;
     private final Typeface mGeneralBoldTypeface;
+    private final DisplayMetrics mDisplayMetrics;
+    private final boolean mIsVibrationEnabled;
     private AlertDialog mCurrentDialog;
 
-    public AlarmMathMissionController(@NonNull Context context, @NonNull Callback callback, @NonNull Typeface generalBoldTypeface) {
+    public AlarmMathMissionController(@NonNull Context context, @NonNull Typeface generalBoldTypeface,
+                                      @NonNull DisplayMetrics displayMetrics, boolean isVibrationEnabled, @NonNull Callback callback) {
         mContext = context;
-        mCallback = callback;
         mGeneralBoldTypeface = generalBoldTypeface;
+        mDisplayMetrics = displayMetrics;
+        mIsVibrationEnabled = isVibrationEnabled;
+        mCallback = callback;
     }
 
     /**
@@ -86,8 +92,8 @@ public class AlarmMathMissionController {
         binding.mathChallengeError.setVisibility(INVISIBLE);
         binding.mathChallengeError.setTypeface(mGeneralBoldTypeface, Typeface.BOLD);
 
-        buildKeypad(binding, state);
-        showCurrentProblem(binding, state);
+        final Keypad keypad = buildKeypad(binding, state);
+        showCurrentProblem(binding, state, keypad);
 
         mCurrentDialog = CustomDialog.create(
             mContext,
@@ -99,7 +105,10 @@ public class AlarmMathMissionController {
             mContext.getString(android.R.string.ok),
             null,
             mContext.getString(android.R.string.cancel),
-            null,
+            (d, w) -> {
+                mCurrentDialog = null;
+                mCallback.onMissionCancelled();
+            },
             mContext.getString(R.string.math_challenge_new_problem),
             null,
             alertDialog -> {
@@ -107,12 +116,12 @@ public class AlarmMathMissionController {
                 alertDialog.setCanceledOnTouchOutside(false);
 
                 alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v ->
-                    validateAnswer(binding, state, alertDialog, action));
+                    validateAnswer(binding, state, keypad, alertDialog, action));
 
                 // Replace the current problem without losing the problems already solved.
                 alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
                     state.newProblem();
-                    showCurrentProblem(binding, state);
+                    showCurrentProblem(binding, state, keypad);
                 });
             },
             CustomDialog.SoftInputMode.NONE
@@ -132,17 +141,26 @@ public class AlarmMathMissionController {
         }
     }
 
-    private void buildKeypad(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state) {
-        final GridLayout keypad = binding.keypad;
-        keypad.removeAllViews();
+    @NonNull
+    private Keypad buildKeypad(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state) {
+        final GridLayout keypadLayout = binding.mathChallengeKeypad;
+        keypadLayout.removeAllViews();
 
-        // 1 2 3 / 4 5 6 / 7 8 9 / C 0 ⌫
-        final String[] keys = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "DEL"};
+        // 1 2 3
+        // 4 5 6
+        // 7 8 9
+        // C 0 ⌫
+        final String[] keys = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "CLEAR", "0", "DELETE"};
+
+        final Keypad keypad = new Keypad();
 
         for (String key : keys) {
-            final MaterialButton button = new MaterialButton(mContext, null,
-                com.google.android.material.R.attr.materialButtonOutlinedStyle);
+            final MaterialButton button =
+                new MaterialButton(mContext, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
 
+            button.setStrokeColorResource(R.color.icon_tint);
+            button.setIconTintResource(R.color.icon_tint);
+            button.setTextColor(ContextCompat.getColorStateList(mContext, R.color.icon_tint));
             button.setTypeface(mGeneralBoldTypeface);
             button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
             button.setInsetTop(0);
@@ -152,64 +170,74 @@ public class AlarmMathMissionController {
             button.setShapeAppearanceModel(ROUND_KEY_SHAPE);
 
             switch (key) {
-                case "C" -> {
-                    button.setText(R.string.math_challenge_clear);
+                case "CLEAR" -> {
+                    keypad.clearButton = button;
+
+                    button.setIcon(ContextCompat.getDrawable(mContext, R.drawable.ic_clear));
+                    button.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);
+                    button.setIconPadding(0);
+                    button.setIconSize((int) dpToPx(32, mDisplayMetrics));
                     button.setContentDescription(mContext.getString(R.string.math_challenge_clear_description));
                     button.setOnClickListener(v -> {
-                        v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                        Utils.performHapticFeedback(v, mIsVibrationEnabled, HapticFeedbackConstants.CLOCK_TICK);
                         state.answer.setLength(0);
-                        onAnswerChanged(binding, state);
+                        onAnswerChanged(binding, state, keypad);
                     });
                 }
-                case "DEL" -> {
+
+                case "DELETE" -> {
+                    keypad.deleteButton = button;
+
                     button.setIcon(ContextCompat.getDrawable(mContext, R.drawable.ic_backspace));
                     button.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);
                     button.setIconPadding(0);
-                    button.setIconTint(ColorStateList.valueOf(
-                        MaterialColors.getColor(button, androidx.appcompat.R.attr.colorPrimary)));
+                    button.setIconSize((int) dpToPx(32, mDisplayMetrics));
                     button.setContentDescription(mContext.getString(R.string.math_challenge_delete_digit));
                     button.setOnClickListener(v -> {
-                        v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                        Utils.performHapticFeedback(v, mIsVibrationEnabled, HapticFeedbackConstants.CLOCK_TICK);
                         if (state.answer.length() > 0) {
                             state.answer.setLength(state.answer.length() - 1);
-                            onAnswerChanged(binding, state);
+                            onAnswerChanged(binding, state, keypad);
                         }
                     });
                 }
+
                 default -> {
                     button.setText(key);
                     button.setOnClickListener(v -> {
-                        v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                        Utils.performHapticFeedback(v, mIsVibrationEnabled, HapticFeedbackConstants.CLOCK_TICK);
                         if (state.answer.length() < MAX_ANSWER_LENGTH) {
                             // Avoid leading zeros, e.g. "007".
                             if (state.answer.length() == 1 && state.answer.charAt(0) == '0') {
                                 state.answer.setLength(0);
                             }
                             state.answer.append(key);
-                            onAnswerChanged(binding, state);
+                            onAnswerChanged(binding, state, keypad);
                         }
                     });
                 }
             }
 
-
-            final int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4,
-                mContext.getResources().getDisplayMetrics());
-            final int height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 56,
-                mContext.getResources().getDisplayMetrics());
+            final int margin = (int) dpToPx(4, mDisplayMetrics);
+            final int height = (int) dpToPx(56, mDisplayMetrics);
 
             final GridLayout.LayoutParams params = new GridLayout.LayoutParams(
                 GridLayout.spec(GridLayout.UNDEFINED),
                 GridLayout.spec(GridLayout.UNDEFINED, 1f));
+
             params.width = 0;
             params.height = height;
             params.setMargins(margin, margin, margin, margin);
 
-            keypad.addView(button, params);
+            keypadLayout.addView(button, params);
         }
+
+        return keypad;
     }
 
-    private void showCurrentProblem(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state) {
+    private void showCurrentProblem(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state,
+                                    @NonNull Keypad keypad) {
+
         binding.mathChallengeText.setText(mContext.getString(R.string.math_challenge_expression, state.challenge.expression()));
 
         if (state.requiredCount > 1) {
@@ -221,16 +249,19 @@ public class AlarmMathMissionController {
         }
 
         state.answer.setLength(0);
-        onAnswerChanged(binding, state);
+        onAnswerChanged(binding, state, keypad);
     }
 
-    private void onAnswerChanged(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state) {
+    private void onAnswerChanged(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state,
+                                 @NonNull Keypad keypad) {
+
         binding.answerDisplay.setText(state.answer);
         binding.mathChallengeError.setVisibility(INVISIBLE);
+        keypad.updateEnabledState(state.answer.length() > 0);
     }
 
     private void validateAnswer(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state,
-                                @NonNull AlertDialog dialog, int action) {
+                                @NonNull Keypad keypad, @NonNull AlertDialog dialog, int action) {
 
         if (state.answer.length() == 0) {
             return;
@@ -238,9 +269,10 @@ public class AlarmMathMissionController {
 
         if (!state.challenge.matches(state.answer.toString())) {
             binding.mathChallengeError.setVisibility(VISIBLE);
-            binding.answerDisplay.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            Utils.performHapticFeedback(binding.answerDisplay, mIsVibrationEnabled, HapticFeedbackConstants.LONG_PRESS);
             state.answer.setLength(0);
             binding.answerDisplay.setText(state.answer);
+            keypad.updateEnabledState(false);
             return;
         }
 
@@ -248,13 +280,31 @@ public class AlarmMathMissionController {
 
         if (state.solvedCount < state.requiredCount) {
             state.newProblem();
-            showCurrentProblem(binding, state);
+            showCurrentProblem(binding, state, keypad);
             return;
         }
 
         dialog.dismiss();
         mCurrentDialog = null;
         mCallback.onMissionResolved(action);
+    }
+
+    /**
+     * The keypad keys that are only enabled while an answer is being typed.
+     */
+    private static final class Keypad {
+        MaterialButton clearButton;
+        MaterialButton deleteButton;
+
+        void updateEnabledState(boolean hasAnswer) {
+            if (clearButton != null) {
+                clearButton.setEnabled(hasAnswer);
+            }
+
+            if (deleteButton != null) {
+                deleteButton.setEnabled(hasAnswer);
+            }
+        }
     }
 
     /**
@@ -285,6 +335,7 @@ public class AlarmMathMissionController {
 
     public interface Callback {
         void onMissionResolved(int action);
+        void onMissionCancelled();
     }
 
 }
