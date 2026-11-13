@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
@@ -149,7 +150,8 @@ public class SpotifySourceDialogFragment extends DialogFragment {
         if (spotifyInstalled) {
             mBinding.openSpotify.setOnClickListener(v -> SpotifyUtils.openSpotify(requireContext()));
         } else {
-            mBinding.openSpotify.setVisibility(android.view.View.GONE);
+            mBinding.openSpotify.setVisibility(View.GONE);
+            mBinding.openSpotifyDivider.setVisibility(View.GONE);
             mBinding.spotifyInfo.setText(R.string.spotify_not_installed_info);
         }
 
@@ -273,7 +275,7 @@ public class SpotifySourceDialogFragment extends DialogFragment {
             mBinding.textInputLayoutLink.setError(null);
             mBinding.textInputLayoutLink.setHelperText(getString(R.string.spotify_link_detected,
                 getString(source.type().labelRes)));
-        } else if (link.trim().isEmpty()) {
+        } else if (link.trim().isEmpty() || SpotifyUtils.looksLikeLinkInProgress(link)) {
             mBinding.textInputLayoutLink.setError(null);
             mBinding.textInputLayoutLink.setHelperText(getString(R.string.spotify_link_helper));
         } else {

@@ -205,6 +205,31 @@ public final class SpotifyUtils {
     }
 
     /**
+     * @return {@code true} if the text could still become a Spotify link as the user types,
+     * e.g. {@code https://open.spot}: no need to show an error yet.
+     */
+    public static boolean looksLikeLinkInProgress(@Nullable CharSequence input) {
+        if (input == null) {
+            return false;
+        }
+
+        String text = input.toString().trim().toLowerCase(Locale.ROOT);
+        String[] starts = {"https://open.spotify.com/", "http://open.spotify.com/", "open.spotify.com/", "spotify:"};
+        for (String start : starts) {
+            if (start.startsWith(text)) {
+                return true;
+            }
+
+            // e.g. "https://open.spotify.com/playlist/37i9dQ" (id still being typed)
+            if (text.startsWith(start) && text.matches("^[a-z0-9:/._-]*$") && text.length() < start.length() + 40) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return {@code true} if the given alarm ringtone URI points to Spotify content.
      */
     public static boolean isSpotifyAlarmUri(@Nullable Uri uri) {

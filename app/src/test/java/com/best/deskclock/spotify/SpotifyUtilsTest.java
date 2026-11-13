@@ -71,6 +71,16 @@ public class SpotifyUtilsTest {
     }
 
     @Test
+    public void recognizesLinksBeingTyped() {
+        org.junit.Assert.assertTrue(SpotifyUtils.looksLikeLinkInProgress("https:/"));
+        org.junit.Assert.assertTrue(SpotifyUtils.looksLikeLinkInProgress("https://open.spot"));
+        org.junit.Assert.assertTrue(SpotifyUtils.looksLikeLinkInProgress("https://open.spotify.com/album/1DF"));
+        org.junit.Assert.assertTrue(SpotifyUtils.looksLikeLinkInProgress("spoti"));
+        org.junit.Assert.assertFalse(SpotifyUtils.looksLikeLinkInProgress("https://youtube.com"));
+        org.junit.Assert.assertFalse(SpotifyUtils.looksLikeLinkInProgress("hello world"));
+    }
+
+    @Test
     public void scalesAlarmVolumeToMediaVolume() {
         assertEquals(1, SpotifyAlarmPlayer.scaleVolume(0, 7, 25));
         assertEquals(25, SpotifyAlarmPlayer.scaleVolume(7, 7, 25));
