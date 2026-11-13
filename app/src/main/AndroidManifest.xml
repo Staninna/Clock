@@ -9,6 +9,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Only used by the optional Home Assistant integration, to reach the user's own server -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission
@@ -61,6 +63,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DeskClock"
         android:localeConfig="@xml/locales_config"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="33"
         tools:ignore="DataExtractionRules, UnusedTranslation">
 

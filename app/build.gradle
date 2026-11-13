@@ -132,4 +132,6 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'com.google.android.material:material:1.14.0'
     implementation 'com.github.martin-stone:hsv-alpha-color-picker-android:3.1.0'
+
+    testImplementation 'junit:junit:4.13.2'
 }
