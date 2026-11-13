@@ -348,6 +348,8 @@ public class AlarmVolumeDialogFragment extends DialogFragment {
             ringtoneUri = RingtoneUtils.getRandomRingtoneUri();
         } else if (RingtoneUtils.isRandomCustomRingtone(ringtoneUri)) {
             ringtoneUri = RingtoneUtils.getRandomCustomRingtoneUri();
+        } else {
+            ringtoneUri = RingtoneUtils.getPreviewableUri(ringtoneUri);
         }
 
         // Start ringtone with volume applied

@@ -90,6 +90,7 @@ import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.provider.ClockContract;
 import com.best.deskclock.ringtone.RingtonePickerActivity;
 import com.best.deskclock.settings.AlarmDisplayPreviewActivity;
+import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.uicomponents.CustomDialog;
 import com.best.deskclock.uicomponents.CustomTooltip;
 import com.best.deskclock.uicomponents.toast.CustomToast;
@@ -865,6 +866,8 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
             iconRingtone = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_ringtone_silent);
         } else if (RingtoneUtils.isRandomRingtone(mAlarm.alert) || RingtoneUtils.isRandomCustomRingtone(mAlarm.alert)) {
             iconRingtone = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_random);
+        } else if (SpotifyUtils.isSpotifyAlarmUri(mAlarm.alert)) {
+            iconRingtone = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_queue_music);
         } else {
             iconRingtone = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_ringtone);
         }

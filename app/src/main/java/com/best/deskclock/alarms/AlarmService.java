@@ -42,6 +42,7 @@ import com.best.deskclock.events.Events;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.ringtone.RingtonePlayer;
+import com.best.deskclock.spotify.SpotifyAlarmPlayer;
 import com.best.deskclock.utils.AlarmUtils;
 import com.best.deskclock.utils.DeviceUtils;
 import com.best.deskclock.utils.LogUtils;
@@ -586,6 +587,9 @@ public class AlarmService extends Service {
 
         if (mCurrentAlarm != null) {
             cleanupAndStop();
+        } else {
+            // A Spotify alarm started by a process that died must not keep playing.
+            SpotifyAlarmPlayer.stop();
         }
 
         stopFlash();
