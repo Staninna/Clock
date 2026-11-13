@@ -29,6 +29,7 @@ public class RingtoneViewHolder extends RecyclerView.ViewHolder {
     private final Drawable mErrorIcon;
     private final Drawable mSilentIcon;
     private final Drawable mRandomIcon;
+    private final Drawable mSpotifyIcon;
 
     public RingtoneViewHolder(@NonNull View itemView, @NonNull RingtoneAdapter adapter, @NonNull UiConfig.Fonts fonts) {
         super(itemView);
@@ -41,6 +42,7 @@ public class RingtoneViewHolder extends RecyclerView.ViewHolder {
         mRingtoneIcon = AppCompatResources.getDrawable(context, R.drawable.ic_ringtone_active_animated);
 
         mRandomIcon = adapter.getRandomIcon();
+        mSpotifyIcon = AppCompatResources.getDrawable(context, R.drawable.ic_queue_music);
         mErrorIcon = adapter.getErrorIcon();
         mSilentIcon = adapter.getSilentIcon();
 
@@ -60,7 +62,8 @@ public class RingtoneViewHolder extends RecyclerView.ViewHolder {
 
         setupIcon(itemHolder);
 
-        if (getItemViewType() == RingtoneAdapter.VIEW_TYPE_CUSTOM_SOUND) {
+        if (getItemViewType() == RingtoneAdapter.VIEW_TYPE_CUSTOM_SOUND
+            || getItemViewType() == RingtoneAdapter.VIEW_TYPE_SPOTIFY_SOUND) {
             mBinding.deleteRingtoneButton.setVisibility(View.VISIBLE);
             mBinding.deleteRingtoneButton.setOnClickListener(v -> listener.onRemoveRingtoneClick(itemHolder));
         } else {
@@ -94,6 +97,8 @@ public class RingtoneViewHolder extends RecyclerView.ViewHolder {
             } else {
                 mBinding.ringtoneImage.setImageDrawable(mErrorIcon);
             }
+        } else if (getItemViewType() == RingtoneAdapter.VIEW_TYPE_SPOTIFY_SOUND) {
+            mBinding.ringtoneImage.setImageDrawable(mSpotifyIcon);
         } else if (itemHolder.isSilent()) {
             mBinding.ringtoneImage.setImageDrawable(mSilentIcon);
         } else if (itemHolder.isRandom()) {

@@ -84,6 +84,7 @@ import com.best.deskclock.databinding.AlarmActivityBinding;
 import com.best.deskclock.events.Events;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
+import com.best.deskclock.spotify.SpotifyAlarmPlayer;
 import com.best.deskclock.uicomponents.AnalogClock;
 import com.best.deskclock.uicomponents.PillView;
 import com.best.deskclock.uidata.UiConfig;
@@ -372,6 +373,9 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
         }
 
         bindAlarmService();
+
+        // A visible alarm screen may start activities: lets a Spotify alarm reliably start Spotify.
+        SpotifyAlarmPlayer.onAlarmScreenVisible(this);
 
         resetAnimations();
     }

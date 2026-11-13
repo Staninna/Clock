@@ -44,6 +44,8 @@
         android:required="false" />
 
     <queries>
+        <!-- Spotify can be used as an alarm sound -->
+        <package android:name="com.spotify.music" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

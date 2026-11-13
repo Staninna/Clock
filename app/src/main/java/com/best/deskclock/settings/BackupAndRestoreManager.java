@@ -42,6 +42,7 @@ import com.best.deskclock.data.Weekdays;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.provider.ClockContract;
+import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.utils.AlarmUtils;
 import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.RingtoneUtils;
@@ -556,6 +557,9 @@ public class BackupAndRestoreManager {
         } else if (RingtoneUtils.isRandomCustomRingtone(Uri.parse(alert))) {
             alarmRingtone = RingtoneUtils.RANDOM_CUSTOM_RINGTONE.toString();
         } else if (RingtoneUtils.isSystemRingtone(Uri.parse(alert)) && isRingtoneAvailable(context, alert)) {
+            alarmRingtone = alert;
+        } else if (SpotifyUtils.fromAlarmUri(Uri.parse(alert)) != null) {
+            // Spotify content doesn't depend on files of the device: it can always be restored.
             alarmRingtone = alert;
         } else {
             alarmRingtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString();

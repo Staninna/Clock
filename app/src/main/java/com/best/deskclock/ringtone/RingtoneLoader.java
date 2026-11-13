@@ -12,6 +12,7 @@ import static com.best.deskclock.utils.RingtoneUtils.RANDOM_RINGTONE;
 import static com.best.deskclock.utils.RingtoneUtils.RINGTONE_SILENT;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -19,9 +20,12 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.loader.content.AsyncTaskLoader;
 
+import com.best.deskclock.DeskClockApplication;
 import com.best.deskclock.R;
 import com.best.deskclock.data.CustomRingtone;
 import com.best.deskclock.data.DataModel;
+import com.best.deskclock.spotify.SpotifySourcesDAO;
+import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.RingtoneUtils;
 
@@ -36,14 +40,16 @@ public class RingtoneLoader extends AsyncTaskLoader<List<RingtoneAdapter.Rington
     private final DataModel mDataModel;
     private final Uri mDefaultRingtoneUri;
     private final String mDefaultRingtoneTitle;
+    private final boolean mIncludeSpotify;
     private List<CustomRingtone> mCustomRingtones;
 
     RingtoneLoader(@NonNull Context context, @NonNull DataModel dataModel, @NonNull Uri defaultRingtoneUri,
-                   @NonNull String defaultRingtoneTitle) {
+                   @NonNull String defaultRingtoneTitle, boolean includeSpotify) {
 
         super(context);
 
         mDataModel = dataModel;
+        mIncludeSpotify = includeSpotify;
         mDefaultRingtoneUri = defaultRingtoneUri;
         mDefaultRingtoneTitle = defaultRingtoneTitle;
     }
@@ -97,6 +103,17 @@ public class RingtoneLoader extends AsyncTaskLoader<List<RingtoneAdapter.Rington
 
             // Add an item holder for the custom ringtones.
             itemHolders.addAll(tempCustomRingtoneHolders);
+
+            // Add the Spotify section: an "Add from Spotify" row and the saved Spotify sources.
+            if (mIncludeSpotify) {
+                itemHolders.add(new HeaderHolder(R.string.spotify_section));
+                itemHolders.add(new SpotifyAddHolder());
+
+                SharedPreferences prefs = DeskClockApplication.getDefaultSharedPreferences(getContext());
+                for (SpotifyUtils.Source source : SpotifySourcesDAO.getSources(prefs)) {
+                    itemHolders.add(new SpotifyRingtoneHolder(source.toAlarmUri(), source.displayTitle(getContext())));
+                }
+            }
 
             // Add an item holder for the Ringtones heading.
             itemHolders.add(new HeaderHolder(R.string.device_sounds));

@@ -620,6 +620,51 @@
     <string name="your_sounds">Your sounds</string>
     <!-- Label for "Device sounds" section on ringtone selection screen [CHAR LIMIT=60] -->
     <string name="device_sounds">Device sounds</string>
+    <!-- Label for the "Spotify" section on the alarm sound selection screen [CHAR LIMIT=60] -->
+    <string name="spotify_section">Spotify</string>
+    <!-- Row of the alarm sound selection screen that adds Spotify content as alarm sound -->
+    <string name="spotify_add_row">Add from Spotify…</string>
+    <!-- Title of the dialog used to add Spotify content as alarm sound -->
+    <string name="spotify_add_title">Wake up with Spotify</string>
+    <!-- Title of the dialog used to edit Spotify content used as alarm sound -->
+    <string name="spotify_edit_title">Edit Spotify sound</string>
+    <!-- Button that adds the Spotify content to the list -->
+    <string name="spotify_add_button">Add</string>
+    <!-- Hint of the field where the user pastes a Spotify link -->
+    <string name="spotify_link_hint">Spotify link</string>
+    <!-- Helper text below the Spotify link field -->
+    <string name="spotify_link_helper">In Spotify, tap Share → Copy link, then paste it here</string>
+    <!-- Helper text when a valid Spotify link was entered. %s = content type, e.g. "Playlist" -->
+    <string name="spotify_link_detected">✓ %s found</string>
+    <!-- Error when the text entered is not a Spotify link -->
+    <string name="spotify_link_invalid">This isn\'t a Spotify track, album, playlist, artist, podcast or episode link</string>
+    <!-- Hint of the optional name field for a Spotify alarm sound -->
+    <string name="spotify_name_hint">Name (optional)</string>
+    <!-- Content description of the paste button -->
+    <string name="spotify_paste">Paste</string>
+    <!-- Message shown when the clipboard contains no Spotify link -->
+    <string name="spotify_clipboard_empty">No Spotify link in the clipboard</string>
+    <!-- Button opening the Spotify app -->
+    <string name="spotify_open_app">Open Spotify to copy a link</string>
+    <!-- Explanation in the Spotify dialog -->
+    <string name="spotify_fallback_info">The alarm starts the Spotify app on this device. If Spotify doesn\'t play (no connection, signed out…), your default alarm sound rings instead, so you always wake up.</string>
+    <!-- Explanation in the Spotify dialog when Spotify isn\'t installed -->
+    <string name="spotify_not_installed_info">Spotify isn\'t installed on this device. You can still add a link, but your default alarm sound will ring until Spotify is installed.</string>
+    <!-- Message when a Spotify sound is selected -->
+    <string name="spotify_selected_message">Spotify will play at media volume. Tap again to rename it.</string>
+    <!-- Message when a Spotify sound is selected but Spotify isn\'t installed -->
+    <string name="spotify_selected_not_installed_message">Spotify isn\'t installed: your default alarm sound will ring instead.</string>
+    <!-- Generic title of Spotify content without a name. %s = content type, e.g. "playlist" -->
+    <string name="spotify_untitled_source">Spotify %s</string>
+    <!-- Title shown when a Spotify alarm sound can\'t be read -->
+    <string name="spotify_invalid_source">Spotify (invalid link)</string>
+    <!-- Spotify content types -->
+    <string name="spotify_type_track">Track</string>
+    <string name="spotify_type_album">Album</string>
+    <string name="spotify_type_playlist">Playlist</string>
+    <string name="spotify_type_artist">Artist</string>
+    <string name="spotify_type_show">Podcast</string>
+    <string name="spotify_type_episode">Episode</string>
     <!-- Text that explains that the ringtone is inaccessible to the app [CHAR LIMIT=NONE] -->
     <string name="custom_ringtone_lost_permissions">The sound content cannot be accessed.</string>
     <!-- Title for the silent ringtone. -->
