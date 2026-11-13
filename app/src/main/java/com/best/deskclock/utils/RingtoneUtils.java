@@ -32,6 +32,7 @@ import com.best.deskclock.data.CustomRingtone;
 import com.best.deskclock.data.DataModel;
 import com.best.deskclock.data.RingtoneModel;
 import com.best.deskclock.provider.Alarm;
+import com.best.deskclock.spotify.SpotifyUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -136,6 +137,19 @@ public class RingtoneUtils {
             LogUtils.e("Ringtone URI is not readable: " + uri, e);
             return false;
         }
+    }
+
+    /**
+     * @return a URI that the app's own players can preview: Spotify content can't be played by the
+     * app, so the default alarm sound is used instead.
+     */
+    @NonNull
+    public static Uri getPreviewableUri(@NonNull Uri uri) {
+        if (SpotifyUtils.isSpotifyAlarmUri(uri)) {
+            return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        }
+
+        return uri;
     }
 
     /**
@@ -367,6 +381,11 @@ public class RingtoneUtils {
      * Physically copies the ringtone to the Device Protected Storage.
      */
     public static void copySystemRingtoneToSafeStorage(@NonNull Context context, @NonNull Uri uri) {
+        // Spotify content is streamed by the Spotify app: there is no file to copy.
+        if (SpotifyUtils.isSpotifyAlarmUri(uri)) {
+            return;
+        }
+
         Context safeContext = Utils.getSafeStorageContext(context);
 
         // If it is the default URI, resolve its real URI before copying

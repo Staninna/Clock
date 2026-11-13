@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.best.deskclock.R;
+import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.utils.DeviceUtils;
 import com.best.deskclock.utils.FileUtils;
 import com.best.deskclock.utils.LogUtils;
@@ -245,6 +246,11 @@ public final class RingtoneModel {
         // Special case: no ringtone has a title of "Silent".
         if (RingtoneUtils.RINGTONE_SILENT.equals(uri)) {
             return localizedContext.getString(R.string.silent_ringtone_title);
+        }
+
+        // Special case: Spotify content is named by the user (or by its type).
+        if (SpotifyUtils.isSpotifyAlarmUri(uri)) {
+            return SpotifyUtils.getTitle(localizedContext, uri);
         }
 
         // If the ringtone is custom, it has its own title.

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-License-Identifier: GPL-3.0-only
+
+    The app only uses the network for its optional online features:
+
+    - Home Assistant talks to the user's own server, usually reached on the local network over
+      plain HTTP (e.g. http://homeassistant.local:8123), so cleartext traffic must be allowed. The
+      settings screen tells the user when the address is not secure.
+    - Spotify (login, Web API and cover images) only uses HTTPS and only trusts the system's
+      certificate authorities.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- Self-signed certificates installed by the user, common for home servers -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">spotify.com</domain>
+        <domain includeSubdomains="true">scdn.co</domain>
+        <domain includeSubdomains="true">spotifycdn.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

@@ -620,6 +620,81 @@
     <string name="your_sounds">Your sounds</string>
     <!-- Label for "Device sounds" section on ringtone selection screen [CHAR LIMIT=60] -->
     <string name="device_sounds">Device sounds</string>
+    <!-- Label for the "Spotify" section on the alarm sound selection screen [CHAR LIMIT=60] -->
+    <string name="spotify_section">Spotify</string>
+    <!-- Row of the alarm sound selection screen that adds Spotify content as alarm sound -->
+    <string name="spotify_add_row">Add from a Spotify link…</string>
+    <!-- Title of the dialog used to add Spotify content as alarm sound -->
+    <string name="spotify_add_title">Wake up with Spotify</string>
+    <!-- Title of the dialog used to edit Spotify content used as alarm sound -->
+    <string name="spotify_edit_title">Edit Spotify sound</string>
+    <!-- Button that adds the Spotify content to the list -->
+    <string name="spotify_add_button">Add</string>
+    <!-- Hint of the field where the user pastes a Spotify link -->
+    <string name="spotify_link_hint">Spotify link</string>
+    <!-- Helper text below the Spotify link field -->
+    <string name="spotify_link_helper">In Spotify, tap Share → Copy link, then paste it here</string>
+    <!-- Helper text when a valid Spotify link was entered. %s = content type, e.g. "Playlist" -->
+    <string name="spotify_link_detected">✓ %s found</string>
+    <!-- Error when the text entered is not a Spotify link -->
+    <string name="spotify_link_invalid">This isn\'t a Spotify track, album, playlist, artist, podcast or episode link</string>
+    <!-- Hint of the optional name field for a Spotify alarm sound -->
+    <string name="spotify_name_hint">Name (optional)</string>
+    <!-- Content description of the paste button -->
+    <string name="spotify_paste">Paste</string>
+    <!-- Message shown when the clipboard contains no Spotify link -->
+    <string name="spotify_clipboard_empty">No Spotify link in the clipboard</string>
+    <!-- Button opening the Spotify app -->
+    <string name="spotify_open_app">Open Spotify to copy a link</string>
+    <!-- Explanation in the Spotify dialog -->
+    <string name="spotify_fallback_info">The alarm starts the Spotify app on this device. If Spotify doesn\'t play (no connection, signed out…), your default alarm sound rings instead, so you always wake up.</string>
+    <!-- Explanation in the Spotify dialog when Spotify isn\'t installed -->
+    <string name="spotify_not_installed_info">Spotify isn\'t installed on this device. You can still add a link, but your default alarm sound will ring until Spotify is installed.</string>
+    <!-- Message when a Spotify sound is selected -->
+    <string name="spotify_selected_message">Spotify will play at media volume. Tap again to rename it.</string>
+    <!-- Message when a Spotify sound is selected but Spotify isn\'t installed -->
+    <string name="spotify_selected_not_installed_message">Spotify isn\'t installed: your default alarm sound will ring instead.</string>
+    <!-- Generic title of Spotify content without a name. %s = content type, e.g. "playlist" -->
+    <string name="spotify_untitled_source">Spotify %s</string>
+    <!-- Title shown when a Spotify alarm sound can\'t be read -->
+    <string name="spotify_invalid_source">Spotify (invalid link)</string>
+    <!-- Spotify login and browsing -->
+    <string name="spotify_login_row">Log in with Spotify</string>
+    <string name="spotify_browse_row">Your playlists and search</string>
+    <string name="spotify_browse_title">Spotify</string>
+    <string name="spotify_login_button">Log in with Spotify</string>
+    <string name="spotify_login_text">Log in to pick an alarm from your playlists, or from anything on Spotify.\n\nWith Spotify Premium, the alarm also asks Spotify to play directly on this phone, which is more reliable.</string>
+    <string name="spotify_setup_text">One-time setup: Spotify only lets apps registered on its developer website log in.\n\n1. Open the Spotify dashboard and log in.\n2. Create an app (any name), choose \"Web API\", and add the redirect URI below.\n3. Copy the app\'s Client ID and paste it here.</string>
+    <string name="spotify_setup_open_dashboard">Open the Spotify dashboard</string>
+    <string name="spotify_setup_redirect_uri">Redirect URI</string>
+    <string name="spotify_setup_client_id">Client ID</string>
+    <string name="spotify_copy">Copy</string>
+    <string name="spotify_copied">Copied</string>
+    <string name="spotify_no_browser">No browser available to log in</string>
+    <!-- %s = user name -->
+    <string name="spotify_logged_in_toast">Logged in to Spotify as %s</string>
+    <string name="spotify_login_cancelled">Spotify login cancelled</string>
+    <string name="spotify_login_failed">Spotify login failed. Check the Client ID and the redirect URI of your Spotify app.</string>
+    <!-- %s = user name -->
+    <string name="spotify_logged_in_as_premium">Logged in as %s · Premium</string>
+    <!-- %s = user name -->
+    <string name="spotify_logged_in_as_free">Logged in as %s · Free: the alarm opens Spotify, Premium is needed to control playback</string>
+    <string name="spotify_logout">Log out</string>
+    <string name="spotify_search_hint">Search songs, albums, playlists, artists</string>
+    <string name="spotify_your_playlists">Your playlists</string>
+    <string name="spotify_search_results">Results</string>
+    <string name="spotify_no_playlists">No playlists yet. Search for something instead.</string>
+    <string name="spotify_no_results">Nothing found</string>
+    <string name="spotify_error_network">Unable to reach Spotify. Check your connection.</string>
+    <!-- %s = HTTP error code -->
+    <string name="spotify_error_http">Spotify refused the request (error %s). Try again later.</string>
+    <!-- Spotify content types -->
+    <string name="spotify_type_track">Track</string>
+    <string name="spotify_type_album">Album</string>
+    <string name="spotify_type_playlist">Playlist</string>
+    <string name="spotify_type_artist">Artist</string>
+    <string name="spotify_type_show">Podcast</string>
+    <string name="spotify_type_episode">Episode</string>
     <!-- Text that explains that the ringtone is inaccessible to the app [CHAR LIMIT=NONE] -->
     <string name="custom_ringtone_lost_permissions">The sound content cannot be accessed.</string>
     <!-- Title for the silent ringtone. -->
@@ -663,6 +738,81 @@
     <string name="general_category_title">General</string>
     <!-- Category title for advanced settings. -->
     <string name="advanced_category_title">Advanced</string>
+    <!-- Home Assistant integration -->
+    <string name="integrations_category_title">Integrations</string>
+    <string name="ha_settings_title">Home Assistant</string>
+    <string name="ha_settings_summary">Use your alarms in smart home automations</string>
+    <string name="ha_not_connected_title">Connect to Home Assistant</string>
+    <string name="ha_not_connected_summary">Wake up with your lights, start the coffee when you get up… Your alarms appear in Home Assistant as a device with sensors and events.</string>
+    <!-- %s = name of the Home Assistant home, e.g. "Home" -->
+    <string name="ha_connected_title">Connected to %s</string>
+    <!-- %s = time of the last update -->
+    <string name="ha_status_ok">✓ Updated at %s</string>
+    <!-- %s = error message -->
+    <string name="ha_status_error">⚠ %s</string>
+    <!-- %s = name of the Home Assistant home -->
+    <string name="ha_connected_toast">Connected to %s. Your alarms are now in Home Assistant.</string>
+    <string name="ha_enabled_title">Share alarms with Home Assistant</string>
+    <string name="ha_enabled_summary">Turn off to pause sharing without disconnecting</string>
+    <string name="ha_share_category">What Home Assistant sees</string>
+    <string name="ha_share_next_alarm_title">Next alarm</string>
+    <!-- %s = entity id, e.g. sensor.pixel_8_clock_next_alarm -->
+    <string name="ha_share_next_alarm_summary">%s, to start a wake-up light before your alarm</string>
+    <string name="ha_share_alarm_events_title">Alarm activity</string>
+    <!-- %1$s = event type (clock_alarm), %2$s = entity id of the alarm state sensor -->
+    <string name="ha_share_alarm_events_summary">Ringing, snoozed, dismissed and missed alarms, as %1$s events and %2$s</string>
+    <string name="ha_share_labels_title">Alarm labels</string>
+    <string name="ha_share_labels_summary">Include labels such as “Work” to tell your alarms apart</string>
+    <string name="ha_device_name_title">Device name</string>
+    <string name="ha_device_name_helper">How this device is called in Home Assistant</string>
+    <string name="ha_tools_category">Tools</string>
+    <string name="ha_examples_title">Automation ideas</string>
+    <string name="ha_examples_summary">Ready-to-use automations: sunrise light, morning routine…</string>
+    <string name="ha_examples_intro">Copy an automation, open Home Assistant, then tap ⋮ → Edit in YAML in the new automation and paste it. Replace the lights and switches with your own.</string>
+    <string name="ha_examples_copy">Copy</string>
+    <string name="ha_examples_close">Close</string>
+    <string name="ha_examples_open">Open Home Assistant</string>
+    <string name="ha_examples_copied">Automation copied</string>
+    <string name="ha_example_sunrise">Turn the bedroom light on slowly, 20 minutes before the alarm</string>
+    <string name="ha_example_dismissed">Start the coffee machine when the alarm is dismissed</string>
+    <string name="ha_example_snoozed">Turn the light on a little when the alarm is snoozed</string>
+    <string name="ha_test_event_title">Send a test event</string>
+    <string name="ha_test_event_summary">To check it, open Developer tools → Events in Home Assistant and listen to clock_alarm</string>
+    <!-- %s = event type -->
+    <string name="ha_test_event_sent">Test event sent: look for %s in Home Assistant</string>
+    <string name="ha_disconnect_title">Disconnect</string>
+    <string name="ha_disconnect_summary">Stop sharing and forget the server and the token</string>
+    <!-- %s = name of the Home Assistant home -->
+    <string name="ha_disconnect_message">This device stops sharing its alarms with %s and forgets the token. Its device and sensors stay in Home Assistant until you delete them there (Settings → Devices &amp; services → Mobile App).</string>
+    <string name="ha_disconnect_confirm">Disconnect</string>
+    <string name="ha_connect_title">Connect to Home Assistant</string>
+    <string name="ha_connect_button">Connect</string>
+    <string name="ha_url_hint">Home Assistant address</string>
+    <string name="ha_url_helper">For example http://homeassistant.local:8123. Tap 🔍 to search your network.</string>
+    <string name="ha_url_not_secure">This address isn\'t encrypted: only use it on your home network.</string>
+    <string name="ha_token_hint">Long-lived access token</string>
+    <string name="ha_token_helper">Your profile → Security → Long-lived access tokens → Create token</string>
+    <string name="ha_create_token">Create a token in Home Assistant</string>
+    <string name="ha_url_needed_for_token">Enter the address first</string>
+    <string name="ha_discover">Search the network</string>
+    <string name="ha_discovering">Looking for Home Assistant on your network…</string>
+    <string name="ha_discover_none">No Home Assistant found automatically. Type its address.</string>
+    <!-- %s = name of the server found -->
+    <string name="ha_discover_found">Found “%s”. Now paste a token.</string>
+    <string name="ha_discover_choose">Choose your Home Assistant</string>
+    <string name="ha_connecting">Connecting…</string>
+    <string name="ha_no_browser">No browser available</string>
+    <string name="ha_error_invalid_url">This address isn\'t valid</string>
+    <string name="ha_error_host_not_found">Server not found. Check the address and that this device is on the same network.</string>
+    <string name="ha_error_refused">The server refused the connection. Is Home Assistant running, and is the port right (usually 8123)?</string>
+    <string name="ha_error_timeout">The server didn\'t answer in time. Is Home Assistant running and reachable from this device?</string>
+    <string name="ha_error_ssl">Secure connection failed. Check the certificate, or use http:// on your home network.</string>
+    <string name="ha_error_unauthorized">The token was refused. Create a new long-lived access token and paste it again.</string>
+    <string name="ha_error_not_home_assistant">This address doesn\'t look like Home Assistant</string>
+    <string name="ha_error_mobile_app">The Mobile App integration isn\'t enabled in Home Assistant. Add “default_config:” or “mobile_app:” to configuration.yaml.</string>
+    <string name="ha_error_webhook_gone">This device was removed from Home Assistant. Connect again.</string>
+    <string name="ha_error_server">Home Assistant had an error. Try again later.</string>
+    <string name="ha_error_network">Unable to reach Home Assistant</string>
     <!-- Category title for style settings. -->
     <string name="style_category_title">Style</string>
     <!-- Category title for color settings. -->

@@ -6,20 +6,28 @@
 
 package com.best.deskclock.alarms;
 
+import android.app.NotificationManager;
 import android.content.Context;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Vibrator;
 
 import androidx.annotation.NonNull;
 
 import com.best.deskclock.DeskClockApplication;
 import com.best.deskclock.base.AppExecutors;
+import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.ringtone.AsyncRingtonePlayer;
 import com.best.deskclock.ringtone.RingtonePlayer;
+import com.best.deskclock.spotify.SpotifyAlarmPlayer;
+import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.utils.DeviceUtils;
 import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.RingtoneUtils;
+import com.best.deskclock.utils.SdkUtils;
 import com.best.deskclock.utils.Utils;
 
 /**
@@ -64,6 +72,10 @@ public final class AlarmKlaxon {
             instance.mVibrationRunnable = null;
         }
 
+        // Called even if this process didn't start the alarm: a Spotify alarm started by a
+        // previous process must still be stopped.
+        SpotifyAlarmPlayer.stop();
+
         if (instance.mStarted) {
             instance.mStarted = false;
 
@@ -103,29 +115,10 @@ public final class AlarmKlaxon {
         boolean isRingtoneSilent = RingtoneUtils.RINGTONE_SILENT.equals(alarmInstance.mRingtone);
 
         if (!isRingtoneSilent) {
-            // Crescendo duration always in milliseconds
-            final int crescendoDuration = alarmInstance.mCrescendoDuration * 1000;
-            if (DeviceUtils.isUserUnlocked(appContext) && config.isAdvancedAudio) {
-                LogUtils.v("AlarmKlaxon.start() with ExoPlayer");
-
-                instance.getRingtonePlayer(config.ringtonePlayerConfig()).play(alarmInstance.mRingtone, crescendoDuration);
+            if (SpotifyUtils.isSpotifyAlarmUri(alarmInstance.mRingtone)) {
+                instance.startSpotify(appContext, config, alarmInstance);
             } else {
-                LogUtils.v("AlarmKlaxon.start() with MediaPlayer");
-
-                if (config.isPerAlarmVolume) {
-                    AudioManager audioManager = appContext.getSystemService(AudioManager.class);
-
-                    if (instance.mPreviousAlarmVolume == -1) {
-                        instance.mPreviousAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
-                    }
-
-                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
-                    if (currentVolume != alarmInstance.mAlarmVolume) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, alarmInstance.mAlarmVolume, 0);
-                    }
-                }
-
-                instance.getAsyncRingtonePlayer().play(alarmInstance.mRingtone, crescendoDuration);
+                instance.playRingtone(appContext, config, alarmInstance, alarmInstance.mRingtone);
             }
         }
 
@@ -185,6 +178,150 @@ public final class AlarmKlaxon {
                 sInstance.mRingtonePlayer = null;
             }
         }
+    }
+
+    /**
+     * Plays a regular ringtone (anything but Spotify) with ExoPlayer or MediaPlayer.
+     */
+    private void playRingtone(@NonNull Context appContext, @NonNull Config config,
+                              @NonNull AlarmInstance alarmInstance, @NonNull Uri ringtoneUri) {
+
+        // Crescendo duration always in milliseconds
+        final int crescendoDuration = alarmInstance.mCrescendoDuration * 1000;
+        if (DeviceUtils.isUserUnlocked(appContext) && config.isAdvancedAudio) {
+            LogUtils.v("AlarmKlaxon.start() with ExoPlayer");
+
+            getRingtonePlayer(config.ringtonePlayerConfig()).play(ringtoneUri, crescendoDuration);
+        } else {
+            LogUtils.v("AlarmKlaxon.start() with MediaPlayer");
+
+            if (config.isPerAlarmVolume) {
+                AudioManager audioManager = appContext.getSystemService(AudioManager.class);
+
+                if (mPreviousAlarmVolume == -1) {
+                    mPreviousAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+                }
+
+                int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+                if (currentVolume != alarmInstance.mAlarmVolume) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_ALARM, alarmInstance.mAlarmVolume, 0);
+                }
+            }
+
+            getAsyncRingtonePlayer().play(ringtoneUri, crescendoDuration);
+        }
+    }
+
+    /**
+     * Rings the alarm with Spotify, and with a regular ringtone if Spotify can't be used.
+     */
+    private void startSpotify(@NonNull Context appContext, @NonNull Config config,
+                              @NonNull AlarmInstance alarmInstance) {
+
+        final SpotifyUtils.Source source = SpotifyUtils.fromAlarmUri(alarmInstance.mRingtone);
+        final String unusableReason;
+
+        if (source == null) {
+            unusableReason = "invalid Spotify source";
+        } else if (!DeviceUtils.isUserUnlocked(appContext)) {
+            // Spotify can't run before the device is unlocked for the first time after a reboot.
+            unusableReason = "device locked since boot (Direct Boot)";
+        } else if (RingtoneUtils.isInTelephoneCall(appContext.getSystemService(AudioManager.class))) {
+            unusableReason = "telephone call in progress";
+        } else if (!(config.isAdvancedAudio
+            && SettingsDAO.isAutoRoutingToExternalAudioDevice(DeskClockApplication.getDefaultSharedPreferences(appContext)))
+            && hasExternalMediaOutput(appContext)) {
+            // Spotify plays on the media stream, which goes to headphones or a Bluetooth speaker:
+            // the phone itself would stay silent.
+            unusableReason = "media audio goes to an external device";
+        } else if (isMediaMutedByDoNotDisturb(appContext)) {
+            unusableReason = "media muted by Do Not Disturb";
+        } else {
+            final int alarmVolume = config.isPerAlarmVolume ? alarmInstance.mAlarmVolume : -1;
+            final boolean started = SpotifyAlarmPlayer.start(appContext, source,
+                alarmInstance.mCrescendoDuration * 1000, alarmVolume, reason -> {
+                    // Spotify failed while ringing: make sure the alarm is still heard.
+                    if (mStarted) {
+                        playRingtone(appContext, config, alarmInstance, getSpotifyFallbackUri(appContext));
+                    }
+                });
+
+            unusableReason = started ? null : "Spotify is not installed";
+        }
+
+        if (unusableReason != null) {
+            LogUtils.w("AlarmKlaxon: cannot use Spotify (" + unusableReason + "), playing the fallback ringtone");
+            playRingtone(appContext, config, alarmInstance, getSpotifyFallbackUri(appContext));
+        }
+    }
+
+    /**
+     * @return {@code true} if headphones, a Bluetooth audio device or a hearing aid is connected,
+     * so media audio would not be played by the phone's speaker.
+     */
+    private static boolean hasExternalMediaOutput(@NonNull Context appContext) {
+        try {
+            AudioManager audioManager = appContext.getSystemService(AudioManager.class);
+            for (AudioDeviceInfo device : audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+                switch (device.getType()) {
+                    case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, AudioDeviceInfo.TYPE_BLE_HEADSET,
+                         AudioDeviceInfo.TYPE_BLE_SPEAKER, AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                         AudioDeviceInfo.TYPE_WIRED_HEADPHONES, AudioDeviceInfo.TYPE_USB_HEADSET,
+                         AudioDeviceInfo.TYPE_HEARING_AID, AudioDeviceInfo.TYPE_LINE_ANALOG,
+                         AudioDeviceInfo.TYPE_LINE_DIGITAL, AudioDeviceInfo.TYPE_HDMI,
+                         AudioDeviceInfo.TYPE_USB_DEVICE, AudioDeviceInfo.TYPE_USB_ACCESSORY -> {
+                        return true;
+                    }
+                    default -> {
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            LogUtils.w("AlarmKlaxon: unable to list the audio outputs: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * @return {@code true} if Do Not Disturb silences media, which would make a Spotify alarm silent.
+     */
+    private static boolean isMediaMutedByDoNotDisturb(@NonNull Context appContext) {
+        try {
+            NotificationManager notificationManager = appContext.getSystemService(NotificationManager.class);
+            int filter = notificationManager.getCurrentInterruptionFilter();
+            if (filter == NotificationManager.INTERRUPTION_FILTER_NONE) {
+                return true;
+            }
+            if (filter == NotificationManager.INTERRUPTION_FILTER_PRIORITY && SdkUtils.isAtLeastAndroid9()) {
+                NotificationManager.Policy policy = notificationManager.getNotificationPolicy();
+                return policy != null
+                    && (policy.priorityCategories & NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA) == 0;
+            }
+        } catch (RuntimeException e) {
+            LogUtils.w("AlarmKlaxon: unable to read the Do Not Disturb state: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * @return the ringtone played when a Spotify alarm can't use Spotify: the default alarm sound
+     * chosen in the settings, or the system alarm sound. Never silent.
+     */
+    @NonNull
+    private static Uri getSpotifyFallbackUri(@NonNull Context appContext) {
+        Uri systemDefault = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        Uri uri = SettingsDAO.getAlarmRingtoneUriFromSettings(
+            DeskClockApplication.getDefaultSharedPreferences(appContext), systemDefault);
+
+        if (RingtoneUtils.isRandomRingtone(uri)) {
+            return RingtoneUtils.getRandomRingtoneUri();
+        } else if (RingtoneUtils.isRandomCustomRingtone(uri)) {
+            return RingtoneUtils.getRandomCustomRingtoneUri();
+        } else if (uri == null || RingtoneUtils.RINGTONE_SILENT.equals(uri) || SpotifyUtils.isSpotifyAlarmUri(uri)) {
+            return systemDefault;
+        }
+
+        return uri;
     }
 
     // MediaPlayer

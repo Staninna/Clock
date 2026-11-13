@@ -30,6 +30,8 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static final int VIEW_TYPE_CUSTOM_SOUND = -R.layout.ringtone_item_sound;
     public static final int VIEW_TYPE_HEADER = R.layout.ringtone_item_header;
     public static final int VIEW_TYPE_BUTTON_TIP = Integer.MIN_VALUE;
+    public static final int VIEW_TYPE_SPOTIFY_SOUND = Integer.MIN_VALUE + 1;
+    public static final int VIEW_TYPE_SPOTIFY_ADD = Integer.MIN_VALUE + 2;
 
     private List<RingtoneItem> mItems = new ArrayList<>();
     private final UiConfig.Fonts mFonts;
@@ -111,6 +113,10 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         if (viewType == VIEW_TYPE_HEADER) {
             return new HeaderViewHolder(inflater.inflate(viewType, parent, false), mFonts);
+        } else if (viewType == VIEW_TYPE_SPOTIFY_ADD) {
+            return new SpotifyAddViewHolder(inflater.inflate(R.layout.ringtone_item_sound, parent, false), mFonts);
+        } else if (viewType == VIEW_TYPE_SPOTIFY_SOUND) {
+            return new RingtoneViewHolder(inflater.inflate(R.layout.ringtone_item_sound, parent, false), this, mFonts);
         } else if (viewType == VIEW_TYPE_BUTTON_TIP) {
             return new AddButtonTipViewHolder(inflater.inflate(R.layout.ringtone_item_sound, parent, false), this, mFonts);
         } else {
@@ -124,6 +130,8 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         if (holder instanceof RingtoneViewHolder ringtoneViewHolder) {
             ringtoneViewHolder.bind((RingtoneHolder) item, mListener);
+        } else if (holder instanceof SpotifyAddViewHolder spotifyAddViewHolder) {
+            spotifyAddViewHolder.bind((SpotifyAddHolder) item, mListener);
         } else if (holder instanceof HeaderViewHolder headerViewHolder) {
             headerViewHolder.bind((HeaderHolder) item);
         }
@@ -152,6 +160,12 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         void onRingtoneClick(@NonNull RingtoneHolder holder);
 
         void onRemoveRingtoneClick(@NonNull RingtoneHolder holder);
+
+        default void onAddSpotifyClick() {
+        }
+
+        default void onBrowseSpotifyClick() {
+        }
     }
 
 }

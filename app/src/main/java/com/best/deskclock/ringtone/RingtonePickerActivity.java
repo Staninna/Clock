@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -60,11 +61,16 @@ import com.best.deskclock.databinding.RingtonePickerBinding;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.uicomponents.CollapsingToolbarBaseActivity;
 import com.best.deskclock.uicomponents.CustomDialog;
+import com.best.deskclock.spotify.SpotifyBrowseDialogFragment;
+import com.best.deskclock.spotify.SpotifySourceDialogFragment;
+import com.best.deskclock.spotify.SpotifySourcesDAO;
+import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.utils.InsetsUtils;
 import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.RingtoneUtils;
 import com.best.deskclock.utils.ThemeUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -110,6 +116,11 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
     public static final String EXTRA_RETURN_RESULT_ONLY = "extra_return_result_only";
 
     /**
+     * Key to an extra that defines if Spotify content can be chosen (alarms only).
+     */
+    private static final String EXTRA_ALLOW_SPOTIFY = "extra_allow_spotify";
+
+    /**
      * Key to an instance state value indicating if the selected ringtone is currently playing.
      */
     private static final String STATE_KEY_PLAYING = "extra_is_playing";
@@ -147,6 +158,7 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
     private boolean mIsVibrationsEnabled;
     private boolean mIsAdvancedAudioPlaybackEnabled;
     private boolean mReturnResultOnly;
+    private boolean mAllowSpotify;
 
     private RingtonePickerBinding mRingtonePickerBinding;
     private RingtoneAddButtonBinding mAddButtonBinding;
@@ -216,7 +228,8 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
             .putExtra(EXTRA_RINGTONE_URI, alarm.alert)
             .putExtra(EXTRA_DEFAULT_RINGTONE_URI, RingtoneManager.getDefaultUri(TYPE_ALARM))
             .putExtra(EXTRA_DEFAULT_RINGTONE_NAME, R.string.default_alarm_ringtone_title)
-            .putExtra(EXTRA_RETURN_RESULT_ONLY, true);
+            .putExtra(EXTRA_RETURN_RESULT_ONLY, true)
+            .putExtra(EXTRA_ALLOW_SPOTIFY, true);
     }
 
     /**
@@ -288,6 +301,34 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
         }
 
         mReturnResultOnly = intent.getBooleanExtra(EXTRA_RETURN_RESULT_ONLY, false);
+        mAllowSpotify = intent.getBooleanExtra(EXTRA_ALLOW_SPOTIFY, false);
+
+        if (mAllowSpotify) {
+            // An alarm may use a Spotify source that is not in the list (e.g. after a restore).
+            SpotifyUtils.Source current = SpotifyUtils.fromAlarmUri(mSelectedRingtoneUri);
+            if (current != null && savedInstanceState == null) {
+                boolean known = false;
+                for (SpotifyUtils.Source source : SpotifySourcesDAO.getSources(getPrefs())) {
+                    if (source.toAlarmUri().equals(mSelectedRingtoneUri)) {
+                        known = true;
+                        break;
+                    }
+                }
+
+                if (!known) {
+                    SpotifySourcesDAO.addSource(getPrefs(), current);
+                }
+            }
+
+            mFragmentManager.setFragmentResultListener(SpotifySourceDialogFragment.REQUEST_KEY, this,
+                (requestKey, bundle) -> {
+                    String result = bundle.getString(SpotifySourceDialogFragment.RESULT_URI);
+                    SpotifyUtils.Source source = SpotifyUtils.fromAlarmUri(result == null ? null : Uri.parse(result));
+                    if (source != null) {
+                        onSpotifySourceChosen(source);
+                    }
+                });
+        }
 
         mDefaultRingtoneUri = IntentCompat.getParcelableExtra(intent, EXTRA_DEFAULT_RINGTONE_URI, Uri.class);
         final int defaultRingtoneTitleId = intent.getIntExtra(EXTRA_DEFAULT_RINGTONE_NAME, 0);
@@ -338,6 +379,11 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
             public void onRingtoneClick(@NonNull RingtoneHolder newSelection) {
                 final RingtoneHolder oldSelection = getSelectedRingtoneHolder();
 
+                if (newSelection instanceof SpotifyRingtoneHolder) {
+                    onSpotifyRingtoneClick(oldSelection, newSelection);
+                    return;
+                }
+
                 if (oldSelection == newSelection) {
                     if (newSelection.isPlaying()) {
                         stopPlayingRingtone(newSelection, false);
@@ -352,7 +398,24 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
 
             @Override
             public void onRemoveRingtoneClick(@NonNull RingtoneHolder toRemove) {
+                if (toRemove instanceof SpotifyRingtoneHolder) {
+                    removeSpotifySource(toRemove);
+                    return;
+                }
+
                 ConfirmRemoveCustomRingtoneDialogFragment.show(mFragmentManager, toRemove.getUri());
+            }
+
+            @Override
+            public void onAddSpotifyClick() {
+                stopPlayingRingtone(getSelectedRingtoneHolder(), false);
+                SpotifySourceDialogFragment.show(mFragmentManager, SpotifySourceDialogFragment.newInstance(null));
+            }
+
+            @Override
+            public void onBrowseSpotifyClick() {
+                stopPlayingRingtone(getSelectedRingtoneHolder(), false);
+                SpotifyBrowseDialogFragment.show(mFragmentManager);
             }
         });
 
@@ -365,6 +428,21 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
         }
 
         LoaderManager.getInstance(this).initLoader(0, null, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // The Spotify rows change after logging in or out.
+        if (mRingtoneAdapter != null) {
+            List<RingtoneAdapter.RingtoneItem> items = mRingtoneAdapter.getItems();
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i) instanceof SpotifyAddHolder) {
+                    mRingtoneAdapter.notifyItemChanged(i);
+                }
+            }
+        }
     }
 
     @Override
@@ -421,7 +499,8 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
     @NonNull
     @Override
     public Loader<List<RingtoneAdapter.RingtoneItem>> onCreateLoader(int id, @Nullable Bundle args) {
-        return new RingtoneLoader(getApplicationContext(), mDataModel, mDefaultRingtoneUri, mDefaultRingtoneTitle);
+        return new RingtoneLoader(getApplicationContext(), mDataModel, mDefaultRingtoneUri, mDefaultRingtoneTitle,
+            mAllowSpotify);
     }
 
     @Override
@@ -526,6 +605,78 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
     @VisibleForTesting()
     RingtoneHolder getSelectedRingtoneHolder() {
         return getRingtoneHolder(mSelectedRingtoneUri);
+    }
+
+    /**
+     * Spotify sources can't be previewed: a tap selects the source, a second tap lets the user
+     * rename it or change its link.
+     */
+    private void onSpotifyRingtoneClick(@Nullable RingtoneHolder oldSelection, @NonNull RingtoneHolder spotifyHolder) {
+        if (oldSelection == spotifyHolder) {
+            SpotifySourceDialogFragment.show(mFragmentManager,
+                SpotifySourceDialogFragment.newInstance(spotifyHolder.getUri()));
+            return;
+        }
+
+        stopPlayingRingtone(oldSelection, true);
+
+        spotifyHolder.setSelected(true);
+        mSelectedRingtoneUri = spotifyHolder.getUri();
+
+        int position = findPositionByHolder(spotifyHolder);
+        if (position != -1) {
+            mRingtoneAdapter.notifyItemChanged(position);
+        }
+
+        showSpotifySelectedMessage();
+    }
+
+    private void showSpotifySelectedMessage() {
+        final int message = SpotifyUtils.isSpotifyInstalled(this)
+            ? R.string.spotify_selected_message
+            : R.string.spotify_selected_not_installed_message;
+
+        Snackbar snackbar = Snackbar.make(mBaseBinding.coordinatorLayout, message, Snackbar.LENGTH_LONG);
+        TextView text = snackbar.getView().findViewById(com.google.android.material.R.id.snackbar_text);
+        if (text != null) {
+            text.setMaxLines(4);
+            text.setTypeface(getGeneralTypeface());
+        }
+        snackbar.show();
+    }
+
+    private void onSpotifySourceChosen(@NonNull SpotifyUtils.Source source) {
+        // Replace the previous version of the same source (e.g. renamed).
+        final RingtoneHolder previous = getSelectedRingtoneHolder();
+        if (previous instanceof SpotifyRingtoneHolder) {
+            SpotifyUtils.Source previousSource = SpotifyUtils.fromAlarmUri(previous.getUri());
+            if (previousSource != null && !(previousSource.type() == source.type() && previousSource.id().equals(source.id()))) {
+                // The link was changed: keep the old source in the list too.
+                SpotifySourcesDAO.addSource(getPrefs(), previousSource);
+            }
+        }
+
+        SpotifySourcesDAO.addSource(getPrefs(), source);
+
+        stopPlayingRingtone(getSelectedRingtoneHolder(), false);
+        mSelectedRingtoneUri = source.toAlarmUri();
+        mIsPlaying = false;
+
+        LoaderManager.getInstance(this).restartLoader(0, null, this);
+
+        showSpotifySelectedMessage();
+    }
+
+    private void removeSpotifySource(@NonNull RingtoneHolder toRemove) {
+        // Alarms using this source keep working: their ringtone URI holds all the information.
+        SpotifySourcesDAO.removeSource(getPrefs(), toRemove.getUri());
+
+        if (toRemove.isSelected()) {
+            mSelectedRingtoneUri = mDefaultRingtoneUri;
+            mIsPlaying = false;
+        }
+
+        LoaderManager.getInstance(this).restartLoader(0, null, this);
     }
 
     /**

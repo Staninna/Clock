@@ -9,6 +9,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Only used by optional online features (Spotify login, Home Assistant), never by the core clock -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission
@@ -44,6 +46,8 @@
         android:required="false" />
 
     <queries>
+        <!-- Spotify can be used as an alarm sound -->
+        <package android:name="com.spotify.music" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -61,6 +65,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DeskClock"
         android:localeConfig="@xml/locales_config"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="33"
         tools:ignore="DataExtractionRules, UnusedTranslation">
 
@@ -200,6 +205,24 @@
             android:theme="@style/Theme.DeskClock.Wallpaper"
             android:windowSoftInputMode="stateAlwaysHidden"
             tools:ignore="DiscouragedApi, NonResizeableActivity" />
+
+        <!-- Receives the redirect of the Spotify login page -->
+        <activity
+            android:name="com.best.deskclock.spotify.SpotifyAuthActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="${applicationId}"
+                    android:host="spotify-callback" />
+            </intent-filter>
+        </activity>
 
         <activity android:name="com.best.deskclock.alarms.AlarmActionRoutingActivity"
             android:excludeFromRecents="true"
