@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.best.deskclock.R;
 import com.best.deskclock.databinding.RingtoneItemSoundBinding;
+import com.best.deskclock.spotify.SpotifyAccount;
 import com.best.deskclock.uidata.UiConfig;
 
 /**
@@ -25,14 +26,23 @@ public class SpotifyAddViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
 
         mBinding = RingtoneItemSoundBinding.bind(itemView);
-        mBinding.ringtoneImage.setImageDrawable(AppCompatResources.getDrawable(itemView.getContext(), R.drawable.ic_add));
         mBinding.soundImageSelected.setVisibility(GONE);
         mBinding.deleteRingtoneButton.setVisibility(GONE);
         mBinding.ringtoneName.setTypeface(fonts.general());
-        mBinding.ringtoneName.setText(R.string.spotify_add_row);
     }
 
-    public void bind(@NonNull RingtoneAdapter.OnRingtoneClickListener listener) {
-        itemView.setOnClickListener(v -> listener.onAddSpotifyClick());
+    public void bind(@NonNull SpotifyAddHolder holder, @NonNull RingtoneAdapter.OnRingtoneClickListener listener) {
+        if (holder.isBrowse()) {
+            mBinding.ringtoneImage.setImageDrawable(
+                AppCompatResources.getDrawable(itemView.getContext(), R.drawable.ic_library_music));
+            mBinding.ringtoneName.setText(SpotifyAccount.isLoggedIn(itemView.getContext())
+                ? R.string.spotify_browse_row
+                : R.string.spotify_login_row);
+            itemView.setOnClickListener(v -> listener.onBrowseSpotifyClick());
+        } else {
+            mBinding.ringtoneImage.setImageDrawable(AppCompatResources.getDrawable(itemView.getContext(), R.drawable.ic_add));
+            mBinding.ringtoneName.setText(R.string.spotify_add_row);
+            itemView.setOnClickListener(v -> listener.onAddSpotifyClick());
+        }
     }
 }

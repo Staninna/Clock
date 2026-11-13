@@ -131,7 +131,7 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (holder instanceof RingtoneViewHolder ringtoneViewHolder) {
             ringtoneViewHolder.bind((RingtoneHolder) item, mListener);
         } else if (holder instanceof SpotifyAddViewHolder spotifyAddViewHolder) {
-            spotifyAddViewHolder.bind(mListener);
+            spotifyAddViewHolder.bind((SpotifyAddHolder) item, mListener);
         } else if (holder instanceof HeaderViewHolder headerViewHolder) {
             headerViewHolder.bind((HeaderHolder) item);
         }
@@ -162,6 +162,9 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         void onRemoveRingtoneClick(@NonNull RingtoneHolder holder);
 
         default void onAddSpotifyClick() {
+        }
+
+        default void onBrowseSpotifyClick() {
         }
     }
 

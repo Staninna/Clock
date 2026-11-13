@@ -107,7 +107,8 @@ public class RingtoneLoader extends AsyncTaskLoader<List<RingtoneAdapter.Rington
             // Add the Spotify section: an "Add from Spotify" row and the saved Spotify sources.
             if (mIncludeSpotify) {
                 itemHolders.add(new HeaderHolder(R.string.spotify_section));
-                itemHolders.add(new SpotifyAddHolder());
+                itemHolders.add(new SpotifyAddHolder(true));
+                itemHolders.add(new SpotifyAddHolder(false));
 
                 SharedPreferences prefs = DeskClockApplication.getDefaultSharedPreferences(getContext());
                 for (SpotifyUtils.Source source : SpotifySourcesDAO.getSources(prefs)) {

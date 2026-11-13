@@ -61,6 +61,7 @@ import com.best.deskclock.databinding.RingtonePickerBinding;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.uicomponents.CollapsingToolbarBaseActivity;
 import com.best.deskclock.uicomponents.CustomDialog;
+import com.best.deskclock.spotify.SpotifyBrowseDialogFragment;
 import com.best.deskclock.spotify.SpotifySourceDialogFragment;
 import com.best.deskclock.spotify.SpotifySourcesDAO;
 import com.best.deskclock.spotify.SpotifyUtils;
@@ -410,6 +411,12 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
                 stopPlayingRingtone(getSelectedRingtoneHolder(), false);
                 SpotifySourceDialogFragment.show(mFragmentManager, SpotifySourceDialogFragment.newInstance(null));
             }
+
+            @Override
+            public void onBrowseSpotifyClick() {
+                stopPlayingRingtone(getSelectedRingtoneHolder(), false);
+                SpotifyBrowseDialogFragment.show(mFragmentManager);
+            }
         });
 
         mRingtonePickerBinding.ringtoneContent.setAdapter(mRingtoneAdapter);
@@ -421,6 +428,21 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
         }
 
         LoaderManager.getInstance(this).initLoader(0, null, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // The Spotify rows change after logging in or out.
+        if (mRingtoneAdapter != null) {
+            List<RingtoneAdapter.RingtoneItem> items = mRingtoneAdapter.getItems();
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i) instanceof SpotifyAddHolder) {
+                    mRingtoneAdapter.notifyItemChanged(i);
+                }
+            }
+        }
     }
 
     @Override

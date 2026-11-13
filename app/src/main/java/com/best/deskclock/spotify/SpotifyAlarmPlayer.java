@@ -30,6 +30,8 @@ import java.lang.ref.WeakReference;
  * <ol>
  *     <li>It asks Spotify to play the chosen content, in a task launched behind the alarm screen
  *     so the alarm stays in front.</li>
+ *     <li>With a Spotify Premium account, it asks Spotify through the Web API to play the source
+ *     on this phone.</li>
  *     <li>If nothing plays after a few seconds it sends a "play" media key, which resumes Spotify.</li>
  *     <li>If still nothing plays and the alarm screen is shown, it brings Spotify to the front for
  *     a moment (some versions only start playing when visible) and then returns to the alarm.</li>
@@ -52,6 +54,9 @@ public final class SpotifyAlarmPlayer {
 
     private static final long CHECK_INTERVAL_MS = 1000;
     private static final long MEDIA_KEY_DELAY_MS = 4000;
+    /** First Web API attempt: Spotify has had time to start and appear as a Connect device. */
+    private static final long WEB_API_DELAY_MS = 2500;
+    private static final int WEB_API_MAX_ATTEMPTS = 3;
     private static final long FOREGROUND_LAUNCH_DELAY_MS = 8000;
     /** Leaves Spotify time to react to a launch before trying another way. */
     private static final long MIN_DELAY_BETWEEN_LAUNCHES_MS = 5000;
@@ -86,6 +91,9 @@ public final class SpotifyAlarmPlayer {
     private boolean mForegroundLaunchDone;
     private boolean mResumeKeySent;
     private boolean mFinished;
+    private int mWebApiAttempts;
+    private long mNextWebApiAttempt = WEB_API_DELAY_MS;
+    private boolean mWebApiPending;
     private int mPreviousMusicVolume = -1;
 
     private final Runnable mWatchdog = this::checkPlayback;
@@ -243,6 +251,10 @@ public final class SpotifyAlarmPlayer {
         final long elapsed = now - mStartTime;
         final boolean playing = mAudioManager.isMusicActive();
 
+        if (!mPlaybackConfirmed && elapsed >= mNextWebApiAttempt) {
+            tryWebApi();
+        }
+
         if (!mPlaybackConfirmed) {
             // Music that was already playing before the alarm does not prove Spotify started,
             // so wait until it's confirmed by the media key or a new launch.
@@ -282,6 +294,86 @@ public final class SpotifyAlarmPlayer {
         }
 
         mHandler.postDelayed(mWatchdog, CHECK_INTERVAL_MS);
+    }
+
+    /**
+     * With a Spotify Premium account, asks Spotify through the Web API to play the source on this
+     * phone. More reliable than the app link alone, which some Spotify versions only open.
+     */
+    private void tryWebApi() {
+        if (mWebApiPending || mWebApiAttempts >= WEB_API_MAX_ATTEMPTS
+            || !SpotifyAccount.isLoggedIn(mContext) || !SpotifyAccount.isPremium(mContext)) {
+            mNextWebApiAttempt = Long.MAX_VALUE;
+            return;
+        }
+
+        mWebApiAttempts++;
+        mWebApiPending = true;
+
+        final Context context = mContext;
+        final SpotifyUtils.Source source = mSource;
+        SpotifyAccount.EXECUTOR.execute(() -> {
+            String result;
+            boolean retry = false;
+            try {
+                String token = SpotifyAccount.getAccessToken(context);
+                SpotifyWebApi.Device device = token == null ? null : findThisPhone(SpotifyWebApi.getDevices(token));
+                if (device == null) {
+                    result = "this phone is not a Spotify Connect device yet";
+                    retry = true;
+                } else {
+                    SpotifyWebApi.play(token, device.id(), source);
+                    result = "playback requested on " + device.name();
+                }
+            } catch (SpotifyWebApi.SpotifyException e) {
+                result = "Web API error " + e.httpCode + (e.reason == null ? "" : " " + e.reason);
+                // e.g. Spotify not ready yet (404 NO_ACTIVE_DEVICE) or no network yet
+                retry = e.isNetworkError() || e.httpCode == 404 || e.httpCode >= 500;
+            }
+
+            final String message = result;
+            final boolean shouldRetry = retry;
+            mHandler.post(() -> {
+                mWebApiPending = false;
+                // Never request playback twice: it would restart the music.
+                mNextWebApiAttempt = shouldRetry
+                    ? SystemClock.elapsedRealtime() - mStartTime + 3000
+                    : Long.MAX_VALUE;
+                LogUtils.i("SpotifyAlarmPlayer: Web API: " + message);
+            });
+        });
+    }
+
+    /**
+     * @return the Spotify Connect device of this phone. Never another device: the alarm must ring
+     * here, not on a speaker in another room.
+     */
+    @Nullable
+    @VisibleForTesting
+    static SpotifyWebApi.Device findThisPhone(@NonNull java.util.List<SpotifyWebApi.Device> devices) {
+        java.util.List<SpotifyWebApi.Device> phones = new java.util.ArrayList<>();
+        for (SpotifyWebApi.Device device : devices) {
+            if ("smartphone".equalsIgnoreCase(device.type())) {
+                phones.add(device);
+            }
+        }
+
+        if (phones.size() == 1) {
+            return phones.get(0);
+        }
+
+        String model = android.os.Build.MODEL == null ? "" : android.os.Build.MODEL;
+        for (SpotifyWebApi.Device phone : phones) {
+            if (!model.isEmpty() && phone.name().equalsIgnoreCase(model)) {
+                return phone;
+            }
+        }
+        for (SpotifyWebApi.Device phone : phones) {
+            if (phone.isActive()) {
+                return phone;
+            }
+        }
+        return null;
     }
 
     private void onPlaybackConfirmed() {

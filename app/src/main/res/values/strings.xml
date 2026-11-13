@@ -623,7 +623,7 @@
     <!-- Label for the "Spotify" section on the alarm sound selection screen [CHAR LIMIT=60] -->
     <string name="spotify_section">Spotify</string>
     <!-- Row of the alarm sound selection screen that adds Spotify content as alarm sound -->
-    <string name="spotify_add_row">Add from Spotify…</string>
+    <string name="spotify_add_row">Add from a Spotify link…</string>
     <!-- Title of the dialog used to add Spotify content as alarm sound -->
     <string name="spotify_add_title">Wake up with Spotify</string>
     <!-- Title of the dialog used to edit Spotify content used as alarm sound -->
@@ -658,6 +658,36 @@
     <string name="spotify_untitled_source">Spotify %s</string>
     <!-- Title shown when a Spotify alarm sound can\'t be read -->
     <string name="spotify_invalid_source">Spotify (invalid link)</string>
+    <!-- Spotify login and browsing -->
+    <string name="spotify_login_row">Log in with Spotify</string>
+    <string name="spotify_browse_row">Your playlists and search</string>
+    <string name="spotify_browse_title">Spotify</string>
+    <string name="spotify_login_button">Log in with Spotify</string>
+    <string name="spotify_login_text">Log in to pick an alarm from your playlists, or from anything on Spotify.\n\nWith Spotify Premium, the alarm also asks Spotify to play directly on this phone, which is more reliable.</string>
+    <string name="spotify_setup_text">One-time setup: Spotify only lets apps registered on its developer website log in.\n\n1. Open the Spotify dashboard and log in.\n2. Create an app (any name), choose \"Web API\", and add the redirect URI below.\n3. Copy the app\'s Client ID and paste it here.</string>
+    <string name="spotify_setup_open_dashboard">Open the Spotify dashboard</string>
+    <string name="spotify_setup_redirect_uri">Redirect URI</string>
+    <string name="spotify_setup_client_id">Client ID</string>
+    <string name="spotify_copy">Copy</string>
+    <string name="spotify_copied">Copied</string>
+    <string name="spotify_no_browser">No browser available to log in</string>
+    <!-- %s = user name -->
+    <string name="spotify_logged_in_toast">Logged in to Spotify as %s</string>
+    <string name="spotify_login_cancelled">Spotify login cancelled</string>
+    <string name="spotify_login_failed">Spotify login failed. Check the Client ID and the redirect URI of your Spotify app.</string>
+    <!-- %s = user name -->
+    <string name="spotify_logged_in_as_premium">Logged in as %s · Premium</string>
+    <!-- %s = user name -->
+    <string name="spotify_logged_in_as_free">Logged in as %s · Free: the alarm opens Spotify, Premium is needed to control playback</string>
+    <string name="spotify_logout">Log out</string>
+    <string name="spotify_search_hint">Search songs, albums, playlists, artists</string>
+    <string name="spotify_your_playlists">Your playlists</string>
+    <string name="spotify_search_results">Results</string>
+    <string name="spotify_no_playlists">No playlists yet. Search for something instead.</string>
+    <string name="spotify_no_results">Nothing found</string>
+    <string name="spotify_error_network">Unable to reach Spotify. Check your connection.</string>
+    <!-- %s = HTTP error code -->
+    <string name="spotify_error_http">Spotify refused the request (error %s). Try again later.</string>
     <!-- Spotify content types -->
     <string name="spotify_type_track">Track</string>
     <string name="spotify_type_album">Album</string>

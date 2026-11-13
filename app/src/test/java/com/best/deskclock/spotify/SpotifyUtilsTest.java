@@ -81,6 +81,32 @@ public class SpotifyUtilsTest {
     }
 
     @Test
+    public void picksThisPhoneAmongSpotifyConnectDevices() {
+        SpotifyWebApi.Device phone = new SpotifyWebApi.Device("p1", "Pixel 8", "Smartphone", false);
+        SpotifyWebApi.Device speaker = new SpotifyWebApi.Device("s1", "Living room", "Speaker", true);
+        SpotifyWebApi.Device computer = new SpotifyWebApi.Device("c1", "Laptop", "Computer", false);
+
+        assertEquals(phone, SpotifyAlarmPlayer.findThisPhone(java.util.List.of(speaker, phone, computer)));
+        // Never another kind of device, even if it is the active one.
+        assertNull(SpotifyAlarmPlayer.findThisPhone(java.util.List.of(speaker, computer)));
+        assertNull(SpotifyAlarmPlayer.findThisPhone(java.util.List.of()));
+
+        // Two phones: the active one (the model name is unknown in unit tests).
+        SpotifyWebApi.Device otherPhone = new SpotifyWebApi.Device("p2", "Old phone", "Smartphone", true);
+        assertEquals(otherPhone, SpotifyAlarmPlayer.findThisPhone(java.util.List.of(phone, otherPhone)));
+    }
+
+    @Test
+    public void validatesClientIds() {
+        org.junit.Assert.assertTrue(SpotifyAccount.isValidClientId("0123456789abcdef0123456789ABCDEF"));
+        org.junit.Assert.assertTrue(SpotifyAccount.isValidClientId(" 0123456789abcdef0123456789abcdef "));
+        org.junit.Assert.assertFalse(SpotifyAccount.isValidClientId("0123456789abcdef"));
+        org.junit.Assert.assertFalse(SpotifyAccount.isValidClientId("0123456789abcdef0123456789abcdeg"));
+        org.junit.Assert.assertFalse(SpotifyAccount.isValidClientId(null));
+        assertEquals(64, SpotifyAccount.randomString(64).length());
+    }
+
+    @Test
     public void scalesAlarmVolumeToMediaVolume() {
         assertEquals(1, SpotifyAlarmPlayer.scaleVolume(0, 7, 25));
         assertEquals(25, SpotifyAlarmPlayer.scaleVolume(7, 7, 25));

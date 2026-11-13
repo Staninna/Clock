@@ -113,6 +113,10 @@ jobs:
           } > keystore.properties
 
       - name: Build release APK
+        env:
+          # Optional: Client ID of your Spotify app, to enable "Log in with Spotify"
+          # (https://developer.spotify.com/dashboard). Without it, users can paste their own.
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
         run: |
           chmod +x gradlew
           ./gradlew --no-configuration-cache :app:assembleRelease

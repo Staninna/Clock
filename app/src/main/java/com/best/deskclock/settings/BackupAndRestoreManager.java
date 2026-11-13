@@ -42,6 +42,7 @@ import com.best.deskclock.data.Weekdays;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.provider.ClockContract;
+import com.best.deskclock.spotify.SpotifyAccount;
 import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.utils.AlarmUtils;
 import com.best.deskclock.utils.LogUtils;
@@ -116,7 +117,9 @@ public class BackupAndRestoreManager {
                     || key.equals(KEY_DIGITAL_CLOCK_FONT)
                     || key.equals(KEY_SCREENSAVER_DIGITAL_CLOCK_FONT)
                     || key.equals(KEY_SCREENSAVER_BACKGROUND_IMAGE)
-                    || key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)) {
+                    || key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)
+                    // The Spotify login must stay on this device
+                    || SpotifyAccount.isPrivateKey(key)) {
                     continue;
                 }
 
