@@ -39,6 +39,7 @@ import com.best.deskclock.alarms.AlarmStateManager;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.data.Timer;
 import com.best.deskclock.data.Weekdays;
+import com.best.deskclock.homeassistant.HomeAssistantSettings;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.provider.ClockContract;
@@ -123,7 +124,9 @@ public class BackupAndRestoreManager {
                     || key.equals(KEY_DIGITAL_CLOCK_FONT)
                     || key.equals(KEY_SCREENSAVER_DIGITAL_CLOCK_FONT)
                     || key.equals(KEY_SCREENSAVER_BACKGROUND_IMAGE)
-                    || key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)) {
+                    || key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)
+                    // The Home Assistant token and registration must stay on this device
+                    || HomeAssistantSettings.isPrivateKey(key)) {
                     continue;
                 }
 

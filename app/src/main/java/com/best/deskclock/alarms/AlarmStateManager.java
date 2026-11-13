@@ -38,6 +38,7 @@ import com.best.deskclock.base.AppExecutors;
 import com.best.deskclock.data.DataModel;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.events.Events;
+import com.best.deskclock.homeassistant.HomeAssistant;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.tiles.AlarmTileService;
@@ -175,6 +176,8 @@ public final class AlarmStateManager extends BroadcastReceiver {
         final AlarmInstance nextAlarm = AlarmInstance.getNextFiringAlarm(context);
 
         updateNextAlarmInAlarmManager(context, nextAlarm);
+
+        HomeAssistant.onNextAlarmChanged(context, nextAlarm);
 
         // Important: Do not proceed further if the user is locked (direct boot mode).
         // Updating widgets may fail because credential-protected storage
@@ -429,6 +432,8 @@ public final class AlarmStateManager extends BroadcastReceiver {
 
         Events.sendAlarmEvent(R.string.action_fire, 0);
 
+        HomeAssistant.onAlarmRinging(context, instance);
+
         boolean hasMathMission = AlarmUtils.hasMathMission(
             alarm, SettingsDAO.getAlarmMathHardnessLevel(prefs), SettingsDAO.isPerAlarmMathHardnessLevelDisabled(prefs)
         );
@@ -479,6 +484,8 @@ public final class AlarmStateManager extends BroadcastReceiver {
         instance.setAlarmTime(newAlarmTime);
         instance.mAlarmState = AlarmInstance.SNOOZE_STATE;
         instance.updateInstance(context.getContentResolver());
+
+        HomeAssistant.onAlarmSnoozed(context, instance, instance.getAlarmTime());
 
         // Setup instance notification and scheduling timers
         AlarmNotifications.showSnoozeNotification(
@@ -559,6 +566,8 @@ public final class AlarmStateManager extends BroadcastReceiver {
         // Update alarm state
         instance.mAlarmState = AlarmInstance.MISSED_STATE;
         instance.updateInstance(contentResolver);
+
+        HomeAssistant.onAlarmMissed(context, instance);
 
         // Setup instance notification and scheduling timers
         AlarmNotifications.showMissedNotification(context, instance, SettingsDAO.getLanguageCode(prefs));
@@ -662,6 +671,8 @@ public final class AlarmStateManager extends BroadcastReceiver {
                                                      @NonNull AlarmInstance instance, boolean showToast) {
 
         final boolean wasPreDismissed = instance.mAlarmState == AlarmInstance.PREDISMISSED_STATE;
+        final boolean wasRingingOrSnoozed = instance.mAlarmState == AlarmInstance.FIRED_STATE
+            || instance.mAlarmState == AlarmInstance.SNOOZE_STATE;
         LogUtils.i("Deleting instance " + instance.mId
             + (wasPreDismissed ? " without updating parent alarm." : " and updating parent alarm."));
 
@@ -700,6 +711,10 @@ public final class AlarmStateManager extends BroadcastReceiver {
 
         // Delete instance as it is not needed anymore
         AlarmInstance.deleteInstance(contentResolver, instance.mId);
+
+        if (wasRingingOrSnoozed) {
+            HomeAssistant.onAlarmDismissed(context, instance);
+        }
 
         // Instance is not valid anymore, so find next alarm that will fire and notify system
         updateNextAlarm(context);

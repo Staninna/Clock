@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-License-Identifier: GPL-3.0-only
+-->
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <Preference
+        android:key="key_ha_connection"
+        android:layout="@layout/settings_preference_layout"
+        android:icon="@drawable/ic_home_automation"
+        android:title="@string/ha_not_connected_title"
+        android:summary="@string/ha_not_connected_summary"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:key="key_ha_enabled"
+        android:layout="@layout/settings_preference_layout"
+        android:title="@string/ha_enabled_title"
+        android:summary="@string/ha_enabled_summary"
+        android:defaultValue="false"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <PreferenceCategory
+        android:key="key_ha_share_category"
+        android:title="@string/ha_share_category"
+        app:allowDividerAbove="false"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:key="key_ha_share_next_alarm"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/ha_share_next_alarm_title"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:key="key_ha_share_alarm_events"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/ha_share_alarm_events_title"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:key="key_ha_share_labels"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/ha_share_labels_title"
+            android:summary="@string/ha_share_labels_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <Preference
+            android:key="key_ha_device_name"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/ha_device_name_title"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="key_ha_tools_category"
+        android:title="@string/ha_tools_category"
+        app:allowDividerAbove="false"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            android:key="key_ha_examples"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/ha_examples_title"
+            android:summary="@string/ha_examples_summary"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <Preference
+            android:key="key_ha_test_event"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/ha_test_event_title"
+            android:summary="@string/ha_test_event_summary"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <Preference
+            android:key="key_ha_disconnect"
+            android:layout="@layout/settings_preference_layout"
+            android:title="@string/ha_disconnect_title"
+            android:summary="@string/ha_disconnect_summary"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

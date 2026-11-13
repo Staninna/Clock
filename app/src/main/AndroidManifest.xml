@@ -65,6 +65,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DeskClock"
         android:localeConfig="@xml/locales_config"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="33"
         tools:ignore="DataExtractionRules, UnusedTranslation">
 

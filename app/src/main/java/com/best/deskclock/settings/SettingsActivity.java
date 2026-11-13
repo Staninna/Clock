@@ -42,6 +42,7 @@ import com.best.deskclock.R;
 import com.best.deskclock.base.AppExecutors;
 import com.best.deskclock.base.BaseSettingsScreenFragment;
 import com.best.deskclock.base.KeepAliveService;
+import com.best.deskclock.homeassistant.HomeAssistantSettingsFragment;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.tiles.AlarmTileService;
@@ -113,6 +114,7 @@ public final class SettingsActivity extends CollapsingToolbarBaseActivity {
         Preference mStopwatchSettingsPref;
         Preference mScreensaverSettings;
         Preference mWidgetsSettings;
+        Preference mHomeAssistantSettings;
         Preference mPermissionsManagement;
         Preference mPermissionMessage;
         Preference mBackupRestorePref;
@@ -235,6 +237,7 @@ public final class SettingsActivity extends CollapsingToolbarBaseActivity {
             mStopwatchSettingsPref = findPreference(KEY_STOPWATCH_SETTINGS);
             mScreensaverSettings = findPreference(KEY_SCREENSAVER_SETTINGS);
             mWidgetsSettings = findPreference(KEY_WIDGETS_SETTINGS);
+            mHomeAssistantSettings = findPreference(KEY_HOME_ASSISTANT_SETTINGS);
             mPermissionsManagement = findPreference(KEY_PERMISSIONS_MANAGEMENT);
             mPermissionMessage = findPreference(KEY_PERMISSION_MESSAGE);
             mBackupRestorePref = findPreference(KEY_BACKUP_RESTORE_PREFERENCES);
@@ -296,6 +299,7 @@ public final class SettingsActivity extends CollapsingToolbarBaseActivity {
                 case KEY_STOPWATCH_SETTINGS -> animateAndShowFragment(new StopwatchSettingsFragment());
                 case KEY_SCREENSAVER_SETTINGS -> animateAndShowFragment(new ScreensaverSettingsActivity.ScreensaverSettingsFragment());
                 case KEY_WIDGETS_SETTINGS -> animateAndShowFragment(new WidgetSettingsFragment());
+                case KEY_HOME_ASSISTANT_SETTINGS -> animateAndShowFragment(new HomeAssistantSettingsFragment());
                 case KEY_PERMISSION_MESSAGE, KEY_PERMISSIONS_MANAGEMENT -> animateAndShowFragment(
                     new PermissionsManagementActivity.PermissionsManagementFragment()
                 );
@@ -331,6 +335,8 @@ public final class SettingsActivity extends CollapsingToolbarBaseActivity {
             mScreensaverSettings.setOnPreferenceClickListener(this);
 
             mWidgetsSettings.setOnPreferenceClickListener(this);
+
+            mHomeAssistantSettings.setOnPreferenceClickListener(this);
 
             mPermissionsManagement.setOnPreferenceClickListener(this);
 
