@@ -86,14 +86,17 @@ public class SpotifyUtilsTest {
         SpotifyWebApi.Device speaker = new SpotifyWebApi.Device("s1", "Living room", "Speaker", true);
         SpotifyWebApi.Device computer = new SpotifyWebApi.Device("c1", "Laptop", "Computer", false);
 
-        assertEquals(phone, SpotifyAlarmPlayer.findThisPhone(java.util.List.of(speaker, phone, computer)));
-        // Never another kind of device, even if it is the active one.
-        assertNull(SpotifyAlarmPlayer.findThisPhone(java.util.List.of(speaker, computer)));
-        assertNull(SpotifyAlarmPlayer.findThisPhone(java.util.List.of()));
+        java.util.List<String> names = java.util.Arrays.asList("Pixel 8", null);
 
-        // Two phones: the active one (the model name is unknown in unit tests).
+        assertEquals(phone, SpotifyAlarmPlayer.findThisPhone(java.util.List.of(speaker, phone, computer), names));
+        // Never another kind of device, even if it is the active one.
+        assertNull(SpotifyAlarmPlayer.findThisPhone(java.util.List.of(speaker, computer), names));
+        assertNull(SpotifyAlarmPlayer.findThisPhone(java.util.List.of(), names));
+
+        // Never another phone of the same account, even the active one or the only one.
         SpotifyWebApi.Device otherPhone = new SpotifyWebApi.Device("p2", "Old phone", "Smartphone", true);
-        assertEquals(otherPhone, SpotifyAlarmPlayer.findThisPhone(java.util.List.of(phone, otherPhone)));
+        assertEquals(phone, SpotifyAlarmPlayer.findThisPhone(java.util.List.of(otherPhone, phone), names));
+        assertNull(SpotifyAlarmPlayer.findThisPhone(java.util.List.of(otherPhone), names));
     }
 
     @Test

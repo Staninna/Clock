@@ -118,6 +118,9 @@ jobs:
           # (https://developer.spotify.com/dashboard). Without it, users can paste their own.
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
         run: |
+          if [ -z "$SPOTIFY_CLIENT_ID" ]; then
+            echo "::warning::SPOTIFY_CLIENT_ID is not set: the Spotify login will ask users for their own Client ID."
+          fi
           chmod +x gradlew
           ./gradlew --no-configuration-cache :app:assembleRelease
 

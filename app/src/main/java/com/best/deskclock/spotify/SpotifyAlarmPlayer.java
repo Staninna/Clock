@@ -61,13 +61,25 @@ public final class SpotifyAlarmPlayer {
     /** Leaves Spotify time to react to a launch before trying another way. */
     private static final long MIN_DELAY_BETWEEN_LAUNCHES_MS = 5000;
     @VisibleForTesting
-    static final long START_TIMEOUT_MS = 25000;
+    static final long START_TIMEOUT_MS = 18000;
     /** How long playback may be interrupted while ringing before falling back. */
     private static final long INTERRUPTION_TIMEOUT_MS = 8000;
 
     // Saved state, to clean up if the process dies while the alarm rings.
     private static final String KEY_ACTIVE = "spotify_alarm_active";
     private static final String KEY_PREVIOUS_MUSIC_VOLUME = "spotify_alarm_previous_music_volume";
+
+    /** Device-only state: never part of a settings backup. */
+    static final String[] PRIVATE_KEYS = {KEY_ACTIVE, KEY_PREVIOUS_MUSIC_VOLUME};
+
+    /**
+     * After the alarm stopped (or fell back to the ringtone) without confirmed Spotify playback,
+     * Spotify may still start late: watch for this long and pause it.
+     */
+    private static final long LATE_START_GUARD_MS = 15000;
+
+    private static Handler sMainHandler;
+    private static Runnable sLateStartGuard;
 
     private static SpotifyAlarmPlayer sCurrent;
 
@@ -85,12 +97,12 @@ public final class SpotifyAlarmPlayer {
     private long mCrescendoStartTime;
     private long mSilentSince = -1;
     private boolean mMusicWasActiveBefore;
-    private boolean mPlaybackConfirmed;
+    private volatile boolean mPlaybackConfirmed;
     private boolean mMediaKeySent;
     private boolean mLaunchedFromScreen;
     private boolean mForegroundLaunchDone;
     private boolean mResumeKeySent;
-    private boolean mFinished;
+    private volatile boolean mFinished;
     private int mWebApiAttempts;
     private long mNextWebApiAttempt = WEB_API_DELAY_MS;
     private boolean mWebApiPending;
@@ -140,6 +152,7 @@ public final class SpotifyAlarmPlayer {
                                 @NonNull FallbackListener fallbackListener) {
 
         stop();
+        cancelLateStartGuard();
 
         if (!SpotifyUtils.isSpotifyInstalled(context)) {
             LogUtils.w("SpotifyAlarmPlayer: Spotify is not installed");
@@ -251,14 +264,11 @@ public final class SpotifyAlarmPlayer {
         final long elapsed = now - mStartTime;
         final boolean playing = mAudioManager.isMusicActive();
 
-        if (!mPlaybackConfirmed && elapsed >= mNextWebApiAttempt) {
-            tryWebApi();
-        }
-
         if (!mPlaybackConfirmed) {
-            // Music that was already playing before the alarm does not prove Spotify started,
-            // so wait until it's confirmed by the media key or a new launch.
-            if (playing && (!mMusicWasActiveBefore || elapsed > MEDIA_KEY_DELAY_MS)) {
+            // Music that was already playing before the alarm (e.g. a sleep sounds app) does
+            // not prove that Spotify started: then only the timeout ends the wait, and the
+            // regular ringtone makes sure the alarm is heard.
+            if (playing && !mMusicWasActiveBefore) {
                 onPlaybackConfirmed();
                 mSilentSince = -1;
                 LogUtils.i("SpotifyAlarmPlayer: playback confirmed after " + elapsed + " ms");
@@ -269,10 +279,15 @@ public final class SpotifyAlarmPlayer {
                 && now - mLastLaunchTime >= MIN_DELAY_BETWEEN_LAUNCHES_MS) {
                 mForegroundLaunchDone = true;
                 launchInForegroundThenReturn();
-            } else if (elapsed >= MEDIA_KEY_DELAY_MS && !mMediaKeySent) {
+            } else if (elapsed >= MEDIA_KEY_DELAY_MS && !mMediaKeySent && !mMusicWasActiveBefore) {
+                // Not with other music playing: the key could resume that app instead.
                 mMediaKeySent = true;
                 LogUtils.i("SpotifyAlarmPlayer: nothing playing yet, sending the play media key");
                 sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY);
+            }
+
+            if (!mPlaybackConfirmed && elapsed >= mNextWebApiAttempt) {
+                tryWebApi();
             }
         } else if (playing) {
             mSilentSince = -1;
@@ -312,13 +327,20 @@ public final class SpotifyAlarmPlayer {
 
         final Context context = mContext;
         final SpotifyUtils.Source source = mSource;
+        final boolean musicWasActiveBefore = mMusicWasActiveBefore;
         SpotifyAccount.EXECUTOR.execute(() -> {
             String result;
             boolean retry = false;
             try {
                 String token = SpotifyAccount.getAccessToken(context);
-                SpotifyWebApi.Device device = token == null ? null : findThisPhone(SpotifyWebApi.getDevices(token));
-                if (device == null) {
+                SpotifyWebApi.Device device = token == null ? null : findThisPhone(SpotifyWebApi.getDevices(token),
+                    getThisDeviceNames(context));
+                if (mFinished || mPlaybackConfirmed
+                    || (!musicWasActiveBefore && mAudioManager.isMusicActive())) {
+                    // The alarm stopped meanwhile, or Spotify started: a play request would
+                    // start or restart the music.
+                    result = "not needed anymore";
+                } else if (device == null) {
                     result = "this phone is not a Spotify Connect device yet";
                     retry = true;
                 } else {
@@ -334,6 +356,9 @@ public final class SpotifyAlarmPlayer {
             final String message = result;
             final boolean shouldRetry = retry;
             mHandler.post(() -> {
+                if (mFinished) {
+                    return;
+                }
                 mWebApiPending = false;
                 // Never request playback twice: it would restart the music.
                 mNextWebApiAttempt = shouldRetry
@@ -345,35 +370,41 @@ public final class SpotifyAlarmPlayer {
     }
 
     /**
-     * @return the Spotify Connect device of this phone. Never another device: the alarm must ring
-     * here, not on a speaker in another room.
+     * @return the Spotify Connect device of this phone, recognized by its name. Never another
+     * device, not even another phone of the same account: the alarm must ring here.
      */
     @Nullable
     @VisibleForTesting
-    static SpotifyWebApi.Device findThisPhone(@NonNull java.util.List<SpotifyWebApi.Device> devices) {
-        java.util.List<SpotifyWebApi.Device> phones = new java.util.ArrayList<>();
+    static SpotifyWebApi.Device findThisPhone(@NonNull java.util.List<SpotifyWebApi.Device> devices,
+                                              @NonNull java.util.List<String> thisDeviceNames) {
         for (SpotifyWebApi.Device device : devices) {
-            if ("smartphone".equalsIgnoreCase(device.type())) {
-                phones.add(device);
+            if (!"smartphone".equalsIgnoreCase(device.type()) || device.name() == null) {
+                continue;
             }
-        }
-
-        if (phones.size() == 1) {
-            return phones.get(0);
-        }
-
-        String model = android.os.Build.MODEL == null ? "" : android.os.Build.MODEL;
-        for (SpotifyWebApi.Device phone : phones) {
-            if (!model.isEmpty() && phone.name().equalsIgnoreCase(model)) {
-                return phone;
-            }
-        }
-        for (SpotifyWebApi.Device phone : phones) {
-            if (phone.isActive()) {
-                return phone;
+            for (String name : thisDeviceNames) {
+                if (name != null && !name.trim().isEmpty() && device.name().trim().equalsIgnoreCase(name.trim())) {
+                    return device;
+                }
             }
         }
         return null;
+    }
+
+    /**
+     * @return the names Spotify may give this phone as a Connect device: the device name chosen
+     * by the user, and the model.
+     */
+    @NonNull
+    private static java.util.List<String> getThisDeviceNames(@NonNull Context context) {
+        java.util.List<String> names = new java.util.ArrayList<>();
+        try {
+            names.add(android.provider.Settings.Global.getString(context.getContentResolver(),
+                android.provider.Settings.Global.DEVICE_NAME));
+        } catch (Exception ignored) {
+            // Not available on this device.
+        }
+        names.add(android.os.Build.MODEL);
+        return names;
     }
 
     private void onPlaybackConfirmed() {
@@ -446,8 +477,9 @@ public final class SpotifyAlarmPlayer {
 
     private void fail(@NonNull String reason) {
         LogUtils.w("SpotifyAlarmPlayer: " + reason + "; falling back to the alarm ringtone");
-        // Don't pause: if Spotify is just late, the alarm is louder rather than silent.
-        finish(false);
+        // The regular ringtone is now the alarm: pause Spotify, including if it starts late, so
+        // it doesn't keep playing after the alarm is dismissed.
+        finish(true);
         if (sCurrent == this) {
             sCurrent = null;
         }
@@ -467,6 +499,11 @@ public final class SpotifyAlarmPlayer {
             sendMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE);
         }
 
+        if (pauseSpotify && !mPlaybackConfirmed) {
+            // Spotify was asked to play but hasn't yet: it may still start in a few seconds.
+            startLateStartGuard(mAudioManager);
+        }
+
         if (mPreviousMusicVolume >= 0) {
             setMusicVolume(mPreviousMusicVolume);
             mPreviousMusicVolume = -1;
@@ -476,6 +513,47 @@ public final class SpotifyAlarmPlayer {
             .remove(KEY_ACTIVE)
             .remove(KEY_PREVIOUS_MUSIC_VOLUME)
             .apply();
+    }
+
+    private static void startLateStartGuard(@NonNull AudioManager audioManager) {
+        cancelLateStartGuard();
+
+        final long until = SystemClock.elapsedRealtime() + LATE_START_GUARD_MS;
+        final boolean wasActive = audioManager.isMusicActive();
+        sLateStartGuard = new Runnable() {
+            @Override
+            public void run() {
+                if (sLateStartGuard != this) {
+                    return;
+                }
+                boolean active = audioManager.isMusicActive();
+                if (active && !wasActive) {
+                    LogUtils.i("SpotifyAlarmPlayer: Spotify started after the alarm stopped, pausing it");
+                    sendMediaKey(audioManager, KeyEvent.KEYCODE_MEDIA_PAUSE);
+                    sLateStartGuard = null;
+                } else if (SystemClock.elapsedRealtime() < until) {
+                    mainHandler().postDelayed(this, CHECK_INTERVAL_MS);
+                } else {
+                    sLateStartGuard = null;
+                }
+            }
+        };
+        mainHandler().postDelayed(sLateStartGuard, CHECK_INTERVAL_MS);
+    }
+
+    @NonNull
+    private static Handler mainHandler() {
+        if (sMainHandler == null) {
+            sMainHandler = new Handler(Looper.getMainLooper());
+        }
+        return sMainHandler;
+    }
+
+    private static void cancelLateStartGuard() {
+        if (sLateStartGuard != null) {
+            mainHandler().removeCallbacks(sLateStartGuard);
+            sLateStartGuard = null;
+        }
     }
 
     private void setMusicVolume(int volume) {

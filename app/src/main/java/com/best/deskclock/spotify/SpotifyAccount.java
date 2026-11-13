@@ -90,6 +90,11 @@ public final class SpotifyAccount {
                 return true;
             }
         }
+        for (String privateKey : SpotifyAlarmPlayer.PRIVATE_KEYS) {
+            if (privateKey.equals(key)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -211,9 +216,10 @@ public final class SpotifyAccount {
                 form.put("code_verifier", verifier);
 
                 JSONObject tokens = SpotifyWebApi.requestToken(form);
-                saveTokens(prefs, tokens);
-
+                // Only log in once the profile (and its Premium status) is known: a half login
+                // would never use the Web API.
                 SpotifyWebApi.Profile profile = SpotifyWebApi.getProfile(tokens.getString("access_token"));
+                saveTokens(prefs, tokens);
                 prefs.edit()
                     .putString(KEY_USER_NAME, profile.displayName())
                     .putString(KEY_USER_ID, profile.id())
@@ -226,6 +232,7 @@ public final class SpotifyAccount {
                 main.post(() -> callback.onLoggedIn(profile));
             } catch (Exception e) {
                 LogUtils.w("SpotifyAccount: login failed: " + e.getMessage());
+                prefs.edit().remove(KEY_PKCE_VERIFIER).remove(KEY_PKCE_STATE).apply();
                 String reason = e instanceof SpotifyWebApi.SpotifyException se && se.reason != null
                     ? se.reason
                     : (e instanceof SpotifyWebApi.SpotifyException se2 && se2.isNetworkError() ? "network" : "unknown");
