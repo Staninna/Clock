@@ -192,7 +192,7 @@
     <string name="world_hours_tomorrow" msgid="2504465609269004794">Morgen, <xliff:g example="6 hours ahead" id="time">%1$s</xliff:g></string>
     <string name="world_hours_yesterday" msgid="4425086322610882745">Gestern, <xliff:g example="4 hours behind" id="time">%1$s</xliff:g></string>
     <string name="next_alarm_description" msgid="2650244835760747046">Nächster Wecker: <xliff:g example="Wed 8:00am" id="alarm_time">%s</xliff:g></string>
-    <string name="no_alarms" msgid="6429431324842022917">Kein Wecker eingerichtet</string>
+    <string name="no_alarms" msgid="6429431324842022917">Kein Wecker</string>
     <string name="invalid_time" msgid="2782334750243998633">Ungültige Zeit: <xliff:g example="25" id="invalid_hour">%1$d</xliff:g>:<xliff:g example="63" id="invalid_minutes">%2$d</xliff:g> <xliff:g example="PM" id="invalid_ampm">%3$s</xliff:g></string>
     <string name="no_alarm_at" msgid="8140632482969193119">Kein Wecker um <xliff:g example="14" id="alarm_time_hour">%1$d</xliff:g>:<xliff:g example="23" id="alarm_time_minutes">%2$d</xliff:g> vorhanden</string>
     <string name="no_scheduled_alarms" msgid="2115420148192753534">Keine eingerichteten Wecker</string>
@@ -461,7 +461,7 @@
     <string name="date_picker_style_title">Stil für Datumsauswahl</string>
     <string name="date_picker_style_calendar">Kalender</string>
     <string name="date_picker_style_text">Tastatur</string>
-    <string name="schedule_alarm_title">Datum</string>
+    <string name="schedule_alarm_title">Wecker planen</string>
     <string name="alarm_scheduled_for">Geplant für %s</string>
     <string name="random_ringtone_title">Zufälliger Weckton</string>
     <string name="warning">Warnung</string>
@@ -484,7 +484,6 @@
     <string name="system_media_volume_title">Medienlautstärke des Systems verwenden</string>
     <string name="system_media_volume_summary">Funktioniert nur, wenn ein externes Audiogerät angeschlossen ist</string>
     <string name="widget_apply_horizontal_padding_title">Abstand zu den Widget-Seiten hinzufügen</string>
-    <string name="enable_per_alarm_volume_title">Für jeden Wecker eine eigene Lautstärke verwenden</string>
     <string name="delay_picker_dialog_title">Wecker in…</string>
     <string name="colors_category_title">Farben</string>
     <string name="clock_dial_flower">Blume</string>
@@ -525,13 +524,8 @@
     <string name="vibration_pattern_strong">Stark</string>
     <string name="background_image_toast_message_selected">Bild erfolgreich ausgewählt</string>
     <string name="confirm_action_prompt">\n\nWillst du fortsetzen?</string>
-    <string name="enable_per_alarm_snooze_duration_title">Für jeden Wecker eine eigene Schlummer-Dauer verwenden</string>
-    <string name="enable_per_alarm_snooze_duration_dialog_message">Individuelle Wecker-Schlummerzeiten werden zurückgesetzt.%s</string>
-    <string name="enable_per_alarm_volume_dialog_message">Individuelle Wecker-Lautstärken werden zurückgesetzt.%s</string>
     <string name="display_dismiss_button_title">Verwerfen-Button anzeigen, sobald der Wecker aktiviert ist</string>
     <string name="display_dismiss_button_summary">Wenn deaktiviert, wird der Button zur selben Zeit angezeigt wie die Benachrichtigungserinnerung</string>
-    <string name="enable_per_alarm_missed_repeat_limit_title">Für jeden verpassten Wecker eine benutzerdefinierte Anzahl von Wiederholungen verwenden</string>
-    <string name="enable_per_alarm_missed_repeat_limit_dialog_message">Individuelle Anzahl an Wiederholungen für verpasste Wecker wird zurückgesetzt.%s</string>
     <string name="missed_alarm_repeat_limit_title">Verpasste Wecker wiederholen</string>
     <string name="missed_alarm_repeat_limit_1_time">einmal</string>
     <string name="missed_alarm_repeat_limit_3_times">dreimal</string>
@@ -545,10 +539,6 @@
     <string name="shadow_offset_title">Schattenabstand</string>
     <string name="blur_intensity_title">Stärke der Unschärfe</string>
     <string name="background_image_title">Hintergrundbild auswählen</string>
-    <string name="enable_per_alarm_crescendo_duration_title">Für jeden Wecker eine individuelle Dauer der Lautstärkeerhöhung verwenden</string>
-    <string name="enable_per_alarm_crescendo_duration_dialog_message">Die Dauer der benutzerdefinierten Lautstärkeerhöhung wird zurückgesetzt.%s</string>
-    <string name="enable_per_alarm_auto_silence_title">Für jeden Wecker eine eigene Stummschaltdauer verwenden</string>
-    <string name="enable_per_alarm_auto_silence_dialog_message">Eigene Stummschaltdauern werden zurückgesetzt.%s</string>
     <string name="features_dialog_message">Seite mit den wichtigsten Funktionen besuchen:\n\n%s</string>
     <string name="repetitive_alarm_is_dismissed">Wecker verworfen. <xliff:g example="Nächster Wecker am Montag" id="alarm_day">Neu geplant für %s.</xliff:g></string>
     <string name="progress_ringtones">Klingeltöne hinzufügen… (%1$d/%2$d)</string>
@@ -571,7 +561,6 @@
     <string name="display_settings_title">Anzeigeeinstellungen</string>
     <string name="settings_language_bulgarian">Bulgarisch</string>
     <string name="settings_language_tamil">Tamil</string>
-    <string name="enable_per_alarm_vibration_pattern_title">Verwende ein eigenes Vibrationsmuster für jeden Wecker</string>
     <string name="background_image_title_variant">Ändere oder entferne das Hintergrundbild</string>
     <string name="background_image_dialog_title">Hintergrundbild</string>
     <string name="background_image_toast_message_deleted">Bild erfolgreich entfernt</string>
@@ -584,7 +573,6 @@
     <string name="battery_color_title">Akkustandsfarbe</string>
     <string name="screensaver_bold_battery_title">Batteriestand in fett</string>
     <string name="screensaver_italic_battery_title">Batteriestand in kursiv</string>
-    <string name="enable_per_alarm_vibration_pattern_dialog_message">Eigene Vibrationsmuster werden zurückgesetzt.%s</string>
     <string name="sync_alarm_by_label_title">Ein- und Ausschalten mit anderen Weckern synchronisieren, die den gleichen Namen haben</string>
     <string name="label_indefinitely">unbegrenzt</string>
     <string name="alarm_alert_dismiss_and_delete_text_button">Verwerfen &amp;\nlöschen</string>
@@ -632,7 +620,7 @@
     <string name="alarm_minutes_warning_box_text">Gib einen Wert von 0 bis 59 Minuten ein</string>
     <string name="display_top_date_title">Datum oberhalb der Zeit anzeigen</string>
     <string name="display_alarm_action_message_title">Nach dem Schlummern oder Verwerfen eines Weckers eine Nachricht anzeigen</string>
-    <string name="pause_alarm_title">Wecker aussetzen</string>
+    <string name="pause_alarm_title">Wecker pausieren</string>
     <string name="pause_alarm_range">Ausgesetzt: %1$s</string>
     <string name="tabs_category_title">Tabs</string>
     <string name="visible_tabs_title">Sichtbare Tabs</string>
@@ -666,18 +654,11 @@
     <string name="background_image_dialog_message">Hintergrundbild ändern oder löschen.</string>
     <string name="headphones_button_title">Start/Pause-Taste für Kopfhörer</string>
     <string name="display_alarm_title_on_single_line_title">Weckernamen in einer Zeile anzeigen</string>
-    <string name="enable_per_alarm_background_image_title">Eigenes Hintergrundbild für jeden Wecker verwenden</string>
-    <string name="enable_per_alarm_background_image_dialog_message">Eigene Hintergrundbilder werden gelöscht.%1$s%2$s</string>
     <string name="timer_settings_general_summary">Diese Einstellung kann für jeden Timer im Bearbeitungsfenster geändert werden</string>
-    <string name="enable_per_timer_auto_silence_title">Eigene Stoppdauer für jeden Timer verwenden</string>
-    <string name="enable_per_timer_crescendo_duration_title">Eigene Dauer für Lautstärkenanstieg für jeden Timer verwenden</string>
     <string name="timer_vibrate_dialog_message">Vibrationen werden für alle Timer deaktiviert.%s</string>
-    <string name="enable_per_timer_vibration_pattern_title">Eigenes Vibrationsmuster für jeden Timer verwenden</string>
     <string name="timer_headphones_button_action_title">Abgelaufene Timer mit der Start/Pause-Taste des Kopfhörers zurücksetzen</string>
     <string name="turn_on_back_flash_for_expired_timer_title">Beim Ablauf des Timers den Blitz einschalten</string>
     <string name="custom_font_dialog_message">Eigene Schriftart ändern oder löschen.</string>
-    <string name="blur_intensity_dialog_message_1">\n\nEigene Unschärfeeinstellungen werden auch zurückgesetzt.</string>
-    <string name="blur_intensity_dialog_message_2">Eigene Unschärfeeinstellungen werden auch zurückgesetzt.%s</string>
     <string name="info">Info</string>
     <string name="pause_alarm_info_message">Tage der Woche wählen, um diese Funktion zu nutzen.</string>
     <string name="delete_occasional_alarm_after_use_info_message">Tage der Woche abwählen, um diese Funktion zu nutzen.</string>
@@ -691,8 +672,6 @@
     <string name="math_hardness_level_easy">Leicht</string>
     <string name="math_hardness_level_normal">Normal</string>
     <string name="math_hardness_level_hard">Schwierig</string>
-    <string name="enable_per_alarm_math_hardness_level_title">Eigene Mathe-Schwierigkeitsstufe für jeden Alarm verwenden</string>
-    <string name="enable_per_alarm_math_hardness_level_dialog_message">Eigene Mathe-Schwierigkeitsstufe werden zurückgesetzt.%s</string>
     <string name="sw_display_milliseconds_title">Millisekunden anzeigen</string>
     <string name="auto_silence_info_message">\"Stummschalten nach\" ist gesetzt auf \"%s\". \n\nMathe-Schwierigkeitsstufe deaktivieren, um diese Funktion zu nutzen.</string>
     <string name="settings_language_swedish">Schwedisch</string>
@@ -760,4 +739,13 @@
     <string name="permission_optional">Optional</string>
     <string name="dnd_permission_title">NICHT STÖREN</string>
     <string name="dnd_dialog_text">Mit dieser Berechtigung kann die App den Modus „Nicht stören“ automatisch ausschalten, wenn dein Wecker klingelt.\n\nWir empfehlen, diese Berechtigung zu aktivieren, damit du nach dem Aufwachen keine wichtigen Anrufe oder Nachrichten verpasst.</string>
+    <string name="time_zone_search_hint">Nach einer Zeitzone suchen</string>
+    <string name="save">Speichern</string>
+    <string name="uncheck_all">Alles abwählen</string>
+    <string name="check_all">Alles wählen</string>
+    <string name="button_alarms_with_delay">Wecker mit Verzögerung hinzufügen</string>
+    <string name="features_to_display_title">Funktionen, die im Bearbeiten-Panel angezeigt werden</string>
+    <string name="turn_on_back_flash_for_triggered_alarm_dialog_message">Der Blitz wird für alle Wecker deaktiviert. %s</string>
+    <string name="disable_dnd_for_triggered_alarm_dialog_message">Die Funktion \"Nicht stören\" wird für alle Wecker deaktiviert.%s</string>
+    <string name="turn_on_back_flash_for_expired_timer_dialog_message">Der Blitz wird für alle Timer deaktiviert.%s</string>
 </resources>

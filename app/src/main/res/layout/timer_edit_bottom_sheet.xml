@@ -23,8 +23,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constrainedHeight="true"
-        app:layout_constraintBottom_toTopOf="@id/timer_button_layout"
-        app:layout_constraintTop_toBottomOf="@id/drag_handle"
+        app:layout_constraintBottom_toTopOf="@+id/timer_button_layout"
+        app:layout_constraintTop_toBottomOf="@+id/drag_handle"
         app:layout_constraintVertical_bias="0">
 
         <com.google.android.material.textview.MaterialTextView
@@ -86,7 +86,7 @@
                     android:minHeight="48dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/timer_label">
+                    app:layout_constraintTop_toBottomOf="@+id/timer_label">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/add_time_button_title"
@@ -127,7 +127,7 @@
                     android:minHeight="48dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/add_time_button_layout">
+                    app:layout_constraintTop_toBottomOf="@+id/add_time_button_layout">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/remove_time_button_title"
@@ -178,15 +178,24 @@
                     android:singleLine="true"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/remove_time_button_layout"
+                    app:layout_constraintTop_toBottomOf="@+id/remove_time_button_layout"
                     tools:text="Standard (Hassium)" />
+
+                <Space
+                    android:id="@+id/second_group_space"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/choose_ringtone"
+                    app:layout_constraintBottom_toTopOf="@+id/vibrate_on_off" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/vibrate_on_off"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="2dp"
                     android:minHeight="48dp"
                     android:paddingHorizontal="10dp"
                     android:button="@null"
@@ -197,7 +206,7 @@
                     android:textColor="?android:attr/textColorPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/choose_ringtone"
+                    app:layout_constraintTop_toBottomOf="@+id/second_group_space"
                     tools:ignore="RtlSymmetry"
                     tools:checked="true" />
 
@@ -211,7 +220,7 @@
                     android:paddingHorizontal="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/vibrate_on_off">
+                    app:layout_constraintTop_toBottomOf="@+id/vibrate_on_off">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/vibration_pattern_title"
@@ -255,7 +264,7 @@
                     android:textColor="?android:attr/textColorPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/vibration_pattern_layout"
+                    app:layout_constraintTop_toBottomOf="@+id/vibration_pattern_layout"
                     tools:ignore="RtlSymmetry"
                     tools:checked="false" />
 
@@ -275,8 +284,7 @@
                     android:textColor="?android:attr/textColorPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/flash_on_off"
-                    app:layout_goneMarginTop="10dp"
+                    app:layout_constraintTop_toBottomOf="@+id/flash_on_off"
                     tools:ignore="RtlSymmetry"
                     tools:checked="true" />
 
@@ -296,12 +304,12 @@
                     android:textColor="?android:attr/textColorPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/turn_off_media"
+                    app:layout_constraintTop_toBottomOf="@+id/turn_off_media"
                     tools:ignore="RtlSymmetry"
                     tools:checked="true" />
 
                 <Space
-                    android:id="@+id/space"
+                    android:id="@+id/third_group_space"
                     android:layout_width="0dp"
                     android:layout_height="8dp"
                     app:layout_constraintStart_toStartOf="parent"
@@ -319,7 +327,7 @@
                     android:paddingHorizontal="10dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/space">
+                    app:layout_constraintTop_toBottomOf="@+id/third_group_space">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/auto_silence_duration_title"
@@ -358,7 +366,7 @@
                     android:paddingHorizontal="10dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/auto_silence_duration_layout">
+                    app:layout_constraintTop_toBottomOf="@+id/auto_silence_duration_layout">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/crescendo_duration_title"
@@ -415,6 +423,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/colorAlert"
+                android:contentDescription="@string/delete"
                 app:icon="@drawable/ic_delete"
                 app:iconTint="?attr/colorOnError"
                 app:iconGravity="textStart"
@@ -427,6 +436,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:contentDescription="@android:string/copy"
                 app:icon="@drawable/ic_duplicate"
                 app:iconTint="?attr/colorOnSurfaceVariant"
                 app:iconGravity="textStart"
@@ -440,6 +450,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/colorGranted"
+                android:contentDescription="@string/save"
                 app:icon="@drawable/ic_save"
                 app:iconTint="?attr/colorSurfaceContainerLowest"
                 app:iconGravity="textStart"

@@ -729,14 +729,6 @@ public final class SettingsDAO {
     }
 
     /**
-     * @return {@code true} if a custom auto silence duration cannot be set for each timer. {@code false} otherwise.
-     */
-    public static boolean isPerTimerAutoSilenceDisabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_timer.xml
-        return !prefs.getBoolean(KEY_ENABLE_PER_TIMER_AUTO_SILENCE, DEFAULT_ENABLE_PER_TIMER_AUTO_SILENCE);
-    }
-
-    /**
      * @return {@code true} if the timer vibrations are enabled. {@code false} otherwise.
      */
     public static boolean isTimerVibrate(@NonNull SharedPreferences prefs) {
@@ -749,14 +741,6 @@ public final class SettingsDAO {
      */
     public static String getTimerVibrationPattern(@NonNull SharedPreferences prefs) {
         return prefs.getString(KEY_TIMER_VIBRATION_PATTERN, DEFAULT_VIBRATION_PATTERN);
-    }
-
-    /**
-     * @return {@code true} if a custom vibration pattern can be set for each timer. {@code false} otherwise.
-     */
-    public static boolean isPerTimerVibrationPatternDisabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_timer.xml
-        return !prefs.getBoolean(KEY_ENABLE_PER_TIMER_VIBRATION_PATTERN, DEFAULT_ENABLE_PER_TIMER_VIBRATION_PATTERN);
     }
 
     /**
@@ -862,6 +846,14 @@ public final class SettingsDAO {
     public static int getTimerShakeIntensity(@NonNull SharedPreferences pref) {
         // Default value must match the one in res/xml/settings_timer.xml
         return pref.getInt(KEY_TIMER_SHAKE_INTENSITY, DEFAULT_TIMER_SHAKE_INTENSITY);
+    }
+
+    /**
+     * @return the set of the timer features to be displayed in the timer editing panel.
+     */
+    public static Set<String> getTimerFeaturesToDisplay(@NonNull SharedPreferences prefs) {
+        // Default value must match the one in res/xml/settings_alarm.xml
+        return prefs.getStringSet(KEY_TIMER_FEATURES_TO_DISPLAY, DEFAULT_TIMER_FEATURES_TO_DISPLAY);
     }
 
     /**
@@ -1038,24 +1030,6 @@ public final class SettingsDAO {
     }
 
     /**
-     * @return {@code true} if a custom volume can be set for each alarm.
-     * {@code false} otherwise.
-     */
-    public static boolean isPerAlarmVolumeEnabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_alarm.xml
-        return prefs.getBoolean(KEY_ENABLE_PER_ALARM_VOLUME, DEFAULT_ENABLE_PER_ALARM_VOLUME);
-    }
-
-    /**
-     * @return {@code true} if a custom volume increase duration cannot be set for each alarm.
-     * {@code false} otherwise.
-     */
-    public static boolean isPerAlarmCrescendoDurationDisabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_alarm.xml
-        return !prefs.getBoolean(KEY_ENABLE_PER_ALARM_VOLUME_CRESCENDO_DURATION, DEFAULT_ENABLE_PER_ALARM_VOLUME_CRESCENDO_DURATION);
-    }
-
-    /**
      * @return the duration, in seconds, of the crescendo to apply to alarm ringtone playback;
      * {@code 0} implies no crescendo should be applied.
      */
@@ -1107,15 +1081,6 @@ public final class SettingsDAO {
     }
 
     /**
-     * @return {@code true} if a custom volume increase duration cannot be set for each alarm.
-     * {@code false} otherwise.
-     */
-    public static boolean isPerTimerCrescendoDurationDisabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_timer.xml
-        return !prefs.getBoolean(KEY_ENABLE_PER_TIMER_VOLUME_CRESCENDO_DURATION, DEFAULT_ENABLE_PER_TIMER_VOLUME_CRESCENDO_DURATION);
-    }
-
-    /**
      * @return {@code true} if swipe action is enabled to dismiss or snooze alarms. {@code false} otherwise.
      */
     public static boolean isSwipeActionEnabled(@NonNull SharedPreferences pref) {
@@ -1134,8 +1099,8 @@ public final class SettingsDAO {
      * @return {@code true} if the math hardness levels are disabled for each alarm. {@code false} otherwise.
      */
     public static boolean isPerAlarmMathHardnessLevelDisabled(@NonNull SharedPreferences pref) {
-        // Default value must match the one in res/xml/settings_alarm.xml
-        return !pref.getBoolean(KEY_ENABLE_PER_ALARM_MATH_HARDNESS_LEVEL, DEFAULT_ENABLE_PER_ALARM_MATH_HARDNESS_LEVEL);
+        // The per-alarm level applies only while it is shown in the alarm editing panel
+        return !getAlarmFeaturesToDisplay(pref).contains(VISIBLE_MATH_HARDNESS_LEVEL);
     }
 
     /**
@@ -1213,6 +1178,14 @@ public final class SettingsDAO {
     public static boolean areAlarmsDeletedWithCategory(@NonNull SharedPreferences prefs) {
         // Default value must match the one in res/xml/settings_alarm.xml
         return prefs.getBoolean(KEY_DELETE_ALARMS_WITH_CATEGORY, DEFAULT_DELETE_ALARMS_WITH_CATEGORY);
+    }
+
+    /**
+     * @return the set of the alarm features to be displayed in the alarm editing panel.
+     */
+    public static Set<String> getAlarmFeaturesToDisplay(@NonNull SharedPreferences prefs) {
+        // Default value must match the one in res/xml/settings_alarm.xml
+        return prefs.getStringSet(KEY_ALARM_FEATURES_TO_DISPLAY, DEFAULT_ALARM_FEATURES_TO_DISPLAY);
     }
 
     /**
@@ -1297,14 +1270,6 @@ public final class SettingsDAO {
     }
 
     /**
-     * @return {@code true} if a custom auto silence duration cannot be set for each alarm. {@code false} otherwise.
-     */
-    public static boolean isPerAlarmAutoSilenceDisabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_alarm.xml
-        return !prefs.getBoolean(KEY_ENABLE_PER_ALARM_AUTO_SILENCE, DEFAULT_ENABLE_PER_ALARM_AUTO_SILENCE);
-    }
-
-    /**
      * @return the number of minutes an alarm may ring before it has timed out
      */
     public static int getAlarmTimeout(@NonNull SharedPreferences prefs) {
@@ -1312,28 +1277,10 @@ public final class SettingsDAO {
     }
 
     /**
-     * @return {@code true} if a custom snooze duration cannot be set for each alarm.
-     * {@code false} otherwise.
-     */
-    public static boolean isPerAlarmSnoozeDurationDisabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_alarm.xml
-        return !prefs.getBoolean(KEY_ENABLE_PER_ALARM_SNOOZE_DURATION, DEFAULT_ENABLE_PER_ALARM_SNOOZE_DURATION);
-    }
-
-    /**
      * @return the number of minutes an alarm will remain snoozed before it rings again
      */
     public static int getSnoozeLength(@NonNull SharedPreferences prefs) {
         return prefs.getInt(KEY_ALARM_SNOOZE_DURATION, DEFAULT_ALARM_SNOOZE_DURATION);
-    }
-
-    /**
-     * @return {@code true} if a custom repeat limit cannot be set for each missed alarm.
-     * {@code false} otherwise.
-     */
-    public static boolean isPerAlarmMissedRepeatLimitDisabled(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_alarm.xml
-        return !prefs.getBoolean(KEY_ENABLE_PER_ALARM_MISSED_REPEAT_LIMIT, DEFAULT_ENABLE_PER_ALARM_MISSED_REPEAT_LIMIT);
     }
 
     /**
@@ -1389,12 +1336,11 @@ public final class SettingsDAO {
     }
 
     /**
-     * @return {@code true} if a custom vibration pattern can be set for each alarm.
-     * {@code false} otherwise.
+     * @return {@code true} if the time remaining until the next alarm is displayed. {@code false} otherwise.
      */
-    public static boolean isPerAlarmVibrationPatternEnabled(@NonNull SharedPreferences prefs) {
+    public static boolean isTimeRemainingUntilNextAlarmDisplayed(@NonNull SharedPreferences pref) {
         // Default value must match the one in res/xml/settings_alarm.xml
-        return prefs.getBoolean(KEY_ENABLE_PER_ALARM_VIBRATION_PATTERN, DEFAULT_ENABLE_PER_ALARM_VIBRATION_PATTERN);
+        return pref.getBoolean(KEY_DISPLAY_TIME_REMAINING_UNTIL_NEXT_ALARM, DEFAULT_DISPLAY_TIME_REMAINING_UNTIL_NEXT_ALARM);
     }
 
     /**
@@ -1797,15 +1743,6 @@ public final class SettingsDAO {
     public static int getAlarmBlurIntensity(@NonNull SharedPreferences prefs) {
         // Default value must match the one in res/xml/settings_alarm_display.xml
         return prefs.getInt(KEY_ALARM_BLUR_INTENSITY, DEFAULT_BLUR_INTENSITY);
-    }
-
-    /**
-     * @return {@code true} if a background image should be used for each alarm when the alarm is triggered.
-     * {@code false} otherwise.
-     */
-    public static boolean isPerAlarmBackgroundImageEnable(@NonNull SharedPreferences prefs) {
-        // Default value must match the one in res/xml/settings_alarm_display.xml
-        return prefs.getBoolean(KEY_ENABLE_PER_ALARM_BACKGROUND_IMAGE, DEFAULT_ENABLE_PER_ALARM_BACKGROUND_IMAGE);
     }
 
     private static ClockStyle getClockStyle(@NonNull SharedPreferences prefs, String key) {
