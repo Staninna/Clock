@@ -70,7 +70,7 @@ public final class SpotifyAlarmPlayer {
     private static final String KEY_PREVIOUS_MUSIC_VOLUME = "spotify_alarm_previous_music_volume";
 
     /** Device-only state: never part of a settings backup. */
-    static final String[] PRIVATE_KEYS = {KEY_ACTIVE, KEY_PREVIOUS_MUSIC_VOLUME};
+    public static final String[] PRIVATE_KEYS = {KEY_ACTIVE, KEY_PREVIOUS_MUSIC_VOLUME};
 
     /**
      * After the alarm stopped (or fell back to the ringtone) without confirmed Spotify playback,
