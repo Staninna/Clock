@@ -392,6 +392,8 @@
     <string name="math_challenge_new_problem">New problem</string>
     <!-- Hint for alarm mission answer field. -->
     <string name="math_challenge_answer_hint">Your answer</string>
+    <!-- Prompt for alarm math mission challenge. -->
+    <string name="math_challenge_prompt">What is %1$d + %2$d?</string>
     <!-- Error shown when alarm mission answer is incorrect. -->
     <string name="math_challenge_wrong_answer">Incorrect answer</string>
     <!-- Message given to a voice assistant or another app trying to stop a ringing alarm that requires a math challenge. -->
