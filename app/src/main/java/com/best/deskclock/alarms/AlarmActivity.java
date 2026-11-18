@@ -190,7 +190,6 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
             if (!mAlarmHandled) {
                 if (action != null) {
                     switch (action) {
-                        // Go through the math challenge if one is required (e.g. flip/shake actions).
                         case AlarmService.ALARM_SNOOZE_ACTION -> requestAlarmAction(MISSION_ACTION_SNOOZE);
                         case AlarmService.ALARM_DISMISS_ACTION -> requestAlarmAction(MISSION_ACTION_DISMISS);
                         case AlarmService.ALARM_MUTE_ACTION -> mute();
@@ -267,7 +266,7 @@ public class AlarmActivity extends BaseActivity implements View.OnClickListener,
         mHeadphonesButtonBehavior = SettingsDAO.getHeadphonesButtonBehavior(getPrefs());
         mMathHardnessLevel = SettingsDAO.getAlarmMathHardnessLevel(getPrefs());
         mMathProblemCount = SettingsDAO.getAlarmMathProblemCount(getPrefs());
-        mIsPerAlarmMathHardnessLevelDisabled = SettingsDAO.isPerAlarmMathHardnessLevelDisabled(getPrefs());
+        mIsPerAlarmMathHardnessLevelDisabled = !SettingsDAO.getAlarmFeaturesToDisplay(getPrefs()).contains(VISIBLE_MATH_HARDNESS_LEVEL);
         mShouldLockAlarmButtons = SettingsDAO.shouldLockAlarmButtonsWithProximitySensor(getPrefs());
 
         getWindow().setBackgroundDrawable(new ColorDrawable(alarmBackgroundColor));

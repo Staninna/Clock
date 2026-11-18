@@ -226,7 +226,7 @@ public class HandleApiCalls extends Activity {
         LOGGER.i("Math challenge required, ignoring API request for alarm: " + instance);
     }
 
-        private static boolean isAlarmWithin24Hours(@NonNull AlarmInstance alarmInstance) {
+    private static boolean isAlarmWithin24Hours(@NonNull AlarmInstance alarmInstance) {
         final Calendar nextAlarmTime = alarmInstance.getAlarmTime();
         final long nextAlarmTimeMillis = nextAlarmTime.getTimeInMillis();
         return nextAlarmTimeMillis - System.currentTimeMillis() <= DateUtils.DAY_IN_MILLIS;

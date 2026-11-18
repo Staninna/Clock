@@ -75,7 +75,6 @@ import com.best.deskclock.utils.LogUtils;
 import com.best.deskclock.utils.SdkUtils;
 import com.best.deskclock.utils.ThemeUtils;
 import com.best.deskclock.utils.Utils;
-
 import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
@@ -121,12 +120,12 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
     private float mInitialTouchX = 0;
     private Vibrator mVibrator;
     private boolean mAreSnoozedOrDismissedAlarmVibrationsEnabled;
-    private final Random mMissionRandom = new Random();
-    private AlarmMathMissionController mMathMissionController;
     private boolean mIsTextShadowDisplayed;
     private int mShadowColor;
     private int mShadowOffset;
     private float mShadowRadius;
+    private final Random mMissionRandom = new Random();
+    private AlarmMathMissionController mMathMissionController;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -162,7 +161,6 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
 
         getWindow().setBackgroundDrawable(new ColorDrawable(alarmBackgroundColor));
 
-        // Same math challenge as a real alarm; solving it plays the snooze/dismiss animation.
         mMathMissionController = new AlarmMathMissionController(this, getGeneralBoldTypeface(), getDisplayMetrics(),
             SettingsDAO.isVibrationsEnabled(getPrefs()), new AlarmMathMissionController.Callback() {
             @Override
@@ -906,23 +904,32 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
     }
 
     /**
-     * Snooze as a real alarm would: through the math challenge first, if one applies.
+     * Snooze as a real alarm starting with the math challenge, if applicable.
      */
     private void snooze() {
-        requestAction(AlarmActivity.MISSION_ACTION_SNOOZE);
+        requestAlarmAction(AlarmActivity.MISSION_ACTION_SNOOZE);
     }
 
     /**
-     * Dismiss as a real alarm would: through the math challenge first, if one applies.
+     * Dismiss as a real alarm starting with the math challenge, if applicable.
      */
     private void dismiss() {
-        requestAction(AlarmActivity.MISSION_ACTION_DISMISS);
+        requestAlarmAction(AlarmActivity.MISSION_ACTION_DISMISS);
     }
 
-    private void requestAction(int action) {
-        final String mathHardnessLevel = getPreviewMathHardnessLevel();
+    private void requestAlarmAction(int action) {
+        String mathHardnessLevel = getIntent().getStringExtra(AlarmUtils.EXTRA_PREVIEW_MATH_HARDNESS_LEVEL);
 
-        if (DEFAULT_MATH_HARDNESS_LEVEL.equals(mathHardnessLevel)) {
+        if (mathHardnessLevel == null || !SettingsDAO.getAlarmFeaturesToDisplay(getPrefs()).contains(VISIBLE_MATH_HARDNESS_LEVEL)) {
+            mathHardnessLevel = SettingsDAO.getAlarmMathHardnessLevel(getPrefs());
+        }
+
+        if (!getIntent().getBooleanExtra(AlarmUtils.EXTRA_PREVIEW_MATH_CHALLENGE_ENABLED, true)) {
+            // The math challenge is switched off for the previewed alarm.
+            mathHardnessLevel = DEFAULT_MATH_HARDNESS_LEVEL;
+        }
+
+        if (mathHardnessLevel.equals(DEFAULT_MATH_HARDNESS_LEVEL)) {
             if (action == AlarmActivity.MISSION_ACTION_SNOOZE) {
                 performSnooze();
             } else {
@@ -933,31 +940,13 @@ public class AlarmDisplayPreviewActivity extends BaseActivity implements View.On
         }
 
         resetAnimations();
+
         mMathMissionController.requestMissionAction(action, mathHardnessLevel,
             getPreviewMathProblemCount(mathHardnessLevel), mMissionRandom);
     }
 
     /**
-     * @return the math hardness level a real alarm would use: the alarm's own level when previewing
-     * a specific alarm with per-alarm levels enabled, otherwise the global level.
-     */
-    @NonNull
-    private String getPreviewMathHardnessLevel() {
-        if (!getIntent().getBooleanExtra(AlarmUtils.EXTRA_PREVIEW_MATH_CHALLENGE_ENABLED, true)) {
-            return DEFAULT_MATH_HARDNESS_LEVEL;
-        }
-
-        final String alarmLevel = getIntent().getStringExtra(AlarmUtils.EXTRA_PREVIEW_MATH_HARDNESS_LEVEL);
-
-        if (alarmLevel == null || SettingsDAO.isPerAlarmMathHardnessLevelDisabled(getPrefs())) {
-            return SettingsDAO.getAlarmMathHardnessLevel(getPrefs());
-        }
-
-        return alarmLevel;
-    }
-
-    /**
-     * @return the number of problems a real alarm would require (see {@link #getPreviewMathHardnessLevel()}).
+     * @return the number of problems a real alarm would require at the given level.
      */
     private int getPreviewMathProblemCount(@NonNull String mathHardnessLevel) {
         final boolean previewingAlarm = getIntent().hasExtra(AlarmUtils.EXTRA_PREVIEW_MATH_PROBLEM_COUNT);
