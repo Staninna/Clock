@@ -392,6 +392,8 @@
     <string name="math_challenge_new_problem">New problem</string>
     <!-- Hint for alarm mission answer field. -->
     <string name="math_challenge_answer_hint">Your answer</string>
+    <!-- Prompt for alarm math mission challenge. -->
+    <string name="math_challenge_prompt">What is %1$d + %2$d?</string>
     <!-- Error shown when alarm mission answer is incorrect. -->
     <string name="math_challenge_wrong_answer">Incorrect answer</string>
     <!-- Message given to a voice assistant or another app trying to stop a ringing alarm that requires a math challenge. -->
@@ -833,6 +835,7 @@
     <string name="ha_connecting">Connecting…</string>
     <string name="ha_no_browser">No browser available</string>
     <string name="ha_error_invalid_url">This address isn\'t valid</string>
+    <string name="ha_error_not_connected">Not connected to Home Assistant. Connect first.</string>
     <string name="ha_error_host_not_found">Server not found. Check the address and that this device is on the same network.</string>
     <string name="ha_error_refused">The server refused the connection. Is Home Assistant running, and is the port right (usually 8123)?</string>
     <string name="ha_error_timeout">The server didn\'t answer in time. Is Home Assistant running and reachable from this device?</string>

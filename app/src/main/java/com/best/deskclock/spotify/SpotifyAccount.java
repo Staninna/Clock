@@ -87,20 +87,6 @@ public final class SpotifyAccount {
         return DeskClockApplication.getDefaultSharedPreferences(context.getApplicationContext());
     }
 
-    public static boolean isPrivateKey(@NonNull String key) {
-        for (String privateKey : PRIVATE_KEYS) {
-            if (privateKey.equals(key)) {
-                return true;
-            }
-        }
-        for (String privateKey : SpotifyAlarmPlayer.PRIVATE_KEYS) {
-            if (privateKey.equals(key)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     // ---------------------------------------------------------------------------------------------
     // Client ID
 

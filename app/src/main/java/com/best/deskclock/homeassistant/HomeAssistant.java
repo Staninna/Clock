@@ -303,8 +303,8 @@ public final class HomeAssistant {
         final PowerManager.WakeLock wakeLock = acquireWakeLock(appContext);
 
         EXECUTOR.execute(() -> {
+            final SharedPreferences prefs = getDefaultSharedPreferences(appContext);
             try {
-                SharedPreferences prefs = getDefaultSharedPreferences(appContext);
                 for (int attempt = 0; ; attempt++) {
                     if (!HomeAssistantSettings.isActive(prefs)) {
                         return;
@@ -336,6 +336,8 @@ public final class HomeAssistant {
                 Thread.currentThread().interrupt();
             } catch (RuntimeException e) {
                 LogUtils.e("HomeAssistant: unable to send " + what, e);
+                // Shown in the settings, like any other failure.
+                HomeAssistantSettings.setLastError(prefs, HomeAssistantClient.Failure.NETWORK.name());
             } finally {
                 if (wakeLock != null && wakeLock.isHeld()) {
                     wakeLock.release();
@@ -353,7 +355,7 @@ public final class HomeAssistant {
             HomeAssistantClient.HomeAssistantException error = null;
             try {
                 if (!HomeAssistantSettings.isConnected(prefs)) {
-                    throw new HomeAssistantClient.HomeAssistantException(HomeAssistantClient.Failure.INVALID_URL, 0, null, null);
+                    throw new HomeAssistantClient.HomeAssistantException(HomeAssistantClient.Failure.NOT_CONNECTED, 0, null, null);
                 }
                 operation.run(new Session(appContext, prefs));
                 HomeAssistantSettings.setLastSync(prefs, System.currentTimeMillis());
@@ -385,7 +387,9 @@ public final class HomeAssistant {
             wakeLock.setReferenceCounted(false);
             wakeLock.acquire(WAKE_LOCK_TIMEOUT_MS);
             return wakeLock;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            // Sending still works while the screen is on; it may just be cut short in deep sleep.
+            LogUtils.w("HomeAssistant: unable to hold a wake lock: " + e.getMessage());
             return null;
         }
     }
@@ -482,7 +486,7 @@ public final class HomeAssistant {
             String webhookId = HomeAssistantSettings.getWebhookId(mPrefs);
             if (TextUtils.isEmpty(webhookId)) {
                 // Disconnected meanwhile.
-                throw new HomeAssistantClient.HomeAssistantException(HomeAssistantClient.Failure.INVALID_URL, 0, "Disconnected", null);
+                throw new HomeAssistantClient.HomeAssistantException(HomeAssistantClient.Failure.NOT_CONNECTED, 0, "Disconnected", null);
             }
             HomeAssistantClient client = new HomeAssistantClient(HomeAssistantSettings.getUrl(mPrefs),
                 HomeAssistantSettings.getToken(mPrefs));

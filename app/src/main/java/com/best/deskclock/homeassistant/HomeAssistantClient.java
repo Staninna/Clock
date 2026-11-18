@@ -43,6 +43,8 @@ public final class HomeAssistantClient {
     /** The reason a request failed, with a message the user can act on. */
     public enum Failure {
         INVALID_URL,
+        /** No connection is saved (never connected, or disconnected meanwhile). */
+        NOT_CONNECTED,
         HOST_NOT_FOUND,
         CONNECTION_REFUSED,
         TIMEOUT,

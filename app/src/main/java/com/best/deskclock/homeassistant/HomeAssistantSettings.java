@@ -47,15 +47,6 @@ public final class HomeAssistantSettings {
         KEY_HA_SERVER_NAME, KEY_HA_LAST_SYNC, KEY_HA_LAST_ERROR, KEY_HA_ENABLED, KEY_HA_ENTITY_PREFIX
     };
 
-    public static boolean isPrivateKey(@NonNull String key) {
-        for (String privateKey : PRIVATE_KEYS) {
-            if (privateKey.equals(key)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /** Version of the sensor definitions; bump it to register the sensors again after a change. */
     static final int SENSORS_VERSION = 1;
 

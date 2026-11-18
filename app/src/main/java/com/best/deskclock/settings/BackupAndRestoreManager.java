@@ -16,6 +16,7 @@ import static com.best.deskclock.data.TimerDAO.TIMER_RINGTONE;
 import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_ALARM_BACKGROUND_IMAGE;
 import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_BLUR_INTENSITY;
 import static com.best.deskclock.settings.PreferencesDefaultValues.DEFAULT_MATH_HARDNESS_LEVEL;
+import static com.best.deskclock.settings.PreferencesDefaultValues.MAX_MATH_PROBLEM_COUNT;
 import static com.best.deskclock.settings.PreferencesKeys.*;
 
 import android.annotation.SuppressLint;
@@ -39,11 +40,9 @@ import com.best.deskclock.alarms.AlarmStateManager;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.data.Timer;
 import com.best.deskclock.data.Weekdays;
-import com.best.deskclock.homeassistant.HomeAssistantSettings;
 import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.provider.AlarmInstance;
 import com.best.deskclock.provider.ClockContract;
-import com.best.deskclock.spotify.SpotifyAccount;
 import com.best.deskclock.spotify.SpotifyUtils;
 import com.best.deskclock.utils.AlarmUtils;
 import com.best.deskclock.utils.LogUtils;
@@ -99,12 +98,6 @@ public class BackupAndRestoreManager {
         for (Map.Entry<String, ?> entry : settings.entrySet()) {
             if (entry.getKey() != null) {
                 String key = entry.getKey();
-
-                // The Spotify login must stay on this device
-                if (SpotifyAccount.isPrivateKey(key)) {
-                    continue;
-                }
-
                 // Exclude keys from custom ringtones and the selected alarm ringtone as this causes bugs when restoring.
                 // Also, exclude keys related to images and fonts from the JSON backup. The physical files for these preferences are saved
                 // directly within the ZIP archive.
@@ -125,8 +118,7 @@ public class BackupAndRestoreManager {
                     || key.equals(KEY_SCREENSAVER_DIGITAL_CLOCK_FONT)
                     || key.equals(KEY_SCREENSAVER_BACKGROUND_IMAGE)
                     || key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)
-                    // The Home Assistant token and registration must stay on this device
-                    || HomeAssistantSettings.isPrivateKey(key)) {
+                    || DeviceOnlySettings.contains(key)) {
                     continue;
                 }
 
@@ -306,14 +298,6 @@ public class BackupAndRestoreManager {
     }
 
     /**
-     * @return {@code true} for the settings that belong to this device only (logins, tokens,
-     * connections): they are never exported, never overwritten and never removed by a restore.
-     */
-    private static boolean isDeviceOnlyKey(@NonNull String key) {
-        return SpotifyAccount.isPrivateKey(key) || HomeAssistantSettings.isPrivateKey(key);
-    }
-
-    /**
      * Read and apply values to restore in SharedPreferences.
      */
     @SuppressLint("ApplySharedPref")
@@ -345,8 +329,7 @@ public class BackupAndRestoreManager {
                 && !key.equals(KEY_SCREENSAVER_DIGITAL_CLOCK_FONT)
                 && !key.equals(KEY_SCREENSAVER_BACKGROUND_IMAGE)
                 && !key.equals(KEY_ESSENTIAL_PERMISSIONS_GRANTED)
-                // Keep the Spotify login and the Home Assistant connection of this device
-                && !isDeviceOnlyKey(key)
+                && !DeviceOnlySettings.contains(key)
             ) {
                 editor.remove(key);
             }
@@ -361,13 +344,11 @@ public class BackupAndRestoreManager {
         }
 
         JSONObject jsonObject = new JSONObject(jsonBuilder.toString());
+        DeviceOnlySettings.removeFrom(jsonObject);
 
         JSONObject booleans = jsonObject.getJSONObject("Boolean settings");
         for (Iterator<String> it = booleans.keys(); it.hasNext(); ) {
             String key = it.next();
-            if (isDeviceOnlyKey(key)) {
-                continue;
-            }
             boolean value = booleans.getBoolean(key);
             editor.putBoolean(key, value);
         }
@@ -375,9 +356,6 @@ public class BackupAndRestoreManager {
         JSONObject strings = jsonObject.getJSONObject("String settings");
         for (Iterator<String> it = strings.keys(); it.hasNext(); ) {
             String key = it.next();
-            if (isDeviceOnlyKey(key)) {
-                continue;
-            }
             String value = strings.getString(key);
 
             if (isRingtoneKey(key)) {
@@ -398,9 +376,6 @@ public class BackupAndRestoreManager {
         JSONObject integers = jsonObject.getJSONObject("Integer settings");
         for (Iterator<String> it = integers.keys(); it.hasNext(); ) {
             String key = it.next();
-            if (isDeviceOnlyKey(key)) {
-                continue;
-            }
             int value = integers.getInt(key);
             editor.putInt(key, value);
         }
@@ -408,9 +383,6 @@ public class BackupAndRestoreManager {
         JSONObject longs = jsonObject.getJSONObject("Long settings");
         for (Iterator<String> it = longs.keys(); it.hasNext(); ) {
             String key = it.next();
-            if (isDeviceOnlyKey(key)) {
-                continue;
-            }
             long value = longs.getLong(key);
             editor.putLong(key, value);
         }
@@ -620,7 +592,7 @@ public class BackupAndRestoreManager {
             missedAlarmRepeatLimit, crescendoDuration, alarmVolume, manualSortOrder, pauseStartDate, pauseEndDate, newBackgroundImage,
             blurIntensity, mathHardnessLevel, lock, timeZone, categoryIds, taskName, taskUrl, disableDND);
         // 0 = automatic (by hardness level); older backups don't have this field.
-        restoredAlarm.mathProblemCount = Math.max(0, Math.min(10, alarmObject.optInt("mathProblemCount", 0)));
+        restoredAlarm.mathProblemCount = Math.max(0, Math.min(MAX_MATH_PROBLEM_COUNT, alarmObject.optInt("mathProblemCount", 0)));
         restoredAlarm.mathChallengeEnabled = alarmObject.optBoolean("mathChallengeEnabled", true);
 
         restoredAlarm.addAlarm(contentResolver);
