@@ -30,7 +30,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.core.view.ViewCompat;
 
 import com.best.deskclock.R;
-import com.best.deskclock.alarms.AlarmMathChallenge;
+import com.best.deskclock.alarms.MathChallengeLevels;
 import com.best.deskclock.data.DataModel;
 import com.best.deskclock.events.Events;
 import com.best.deskclock.provider.Alarm;
@@ -631,7 +631,7 @@ public class AlarmUtils {
      */
     public static int resolveMathProblemCount(int count, @NonNull String mathHardnessLevel) {
         if (count <= 0) {
-            return AlarmMathChallenge.requiredProblemCount(mathHardnessLevel);
+            return MathChallengeLevels.requiredProblemCount(mathHardnessLevel);
         }
         return Math.min(count, MAX_MATH_PROBLEM_COUNT);
     }

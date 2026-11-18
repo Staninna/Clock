@@ -1240,7 +1240,7 @@ public class AlarmEditBottomSheetFragment extends BottomSheetDialogFragment {
 
         final int count = mAlarm.mathProblemCount;
         mBinding.mathProblemCountValue.setText(count <= 0
-            ? getString(R.string.math_problem_count_auto_short, AlarmMathChallenge.requiredProblemCount(mAlarm.mathHardnessLevel))
+            ? getString(R.string.math_problem_count_auto_short, MathChallengeLevels.requiredProblemCount(mAlarm.mathHardnessLevel))
             : String.valueOf(count));
 
         mBinding.mathProblemCountLayout.setOnClickListener(v -> showMathProblemCountDialog());
