@@ -833,6 +833,7 @@
     <string name="ha_connecting">Connecting…</string>
     <string name="ha_no_browser">No browser available</string>
     <string name="ha_error_invalid_url">This address isn\'t valid</string>
+    <string name="ha_error_not_connected">Not connected to Home Assistant. Connect first.</string>
     <string name="ha_error_host_not_found">Server not found. Check the address and that this device is on the same network.</string>
     <string name="ha_error_refused">The server refused the connection. Is Home Assistant running, and is the port right (usually 8123)?</string>
     <string name="ha_error_timeout">The server didn\'t answer in time. Is Home Assistant running and reachable from this device?</string>

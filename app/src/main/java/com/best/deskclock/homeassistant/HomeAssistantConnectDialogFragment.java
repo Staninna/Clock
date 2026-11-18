@@ -311,6 +311,7 @@ public class HomeAssistantConnectDialogFragment extends DialogFragment {
     public static int errorMessage(@NonNull HomeAssistantClient.Failure failure) {
         return switch (failure) {
             case INVALID_URL -> R.string.ha_error_invalid_url;
+            case NOT_CONNECTED -> R.string.ha_error_not_connected;
             case HOST_NOT_FOUND -> R.string.ha_error_host_not_found;
             case CONNECTION_REFUSED -> R.string.ha_error_refused;
             case TIMEOUT -> R.string.ha_error_timeout;
