@@ -21,7 +21,7 @@ import androidx.core.content.ContextCompat;
 
 import com.best.deskclock.R;
 import com.best.deskclock.alarms.AlarmActivity;
-import com.best.deskclock.alarms.AlarmMathChallenge;
+import com.best.deskclock.alarms.MathMission;
 import com.best.deskclock.databinding.AlarmMathChallengeDialogBinding;
 import com.best.deskclock.uicomponents.CustomDialog;
 import com.best.deskclock.utils.Utils;
@@ -39,24 +39,18 @@ import java.util.Random;
  * user's keyboard app may not be available.</p>
  */
 public class AlarmMathMissionController {
-
-    /**
-     * Longest answer that can be typed; larger than any answer the generator produces.
-     */
-    private static final int MAX_ANSWER_LENGTH = 6;
-
-    /**
-     * Fully round keypad keys, without a separate pressed shape.
-     */
-    private static final ShapeAppearanceModel ROUND_KEY_SHAPE =
-        ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build();
-
     private final Context mContext;
     private final Callback mCallback;
     private final Typeface mGeneralBoldTypeface;
     private final DisplayMetrics mDisplayMetrics;
     private final boolean mIsVibrationEnabled;
     private AlertDialog mCurrentDialog;
+
+    /**
+     * Fully round keypad keys, without a separate pressed shape.
+     */
+    private static final ShapeAppearanceModel ROUND_KEY_SHAPE =
+        ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build();
 
     public AlarmMathMissionController(@NonNull Context context, @NonNull Typeface generalBoldTypeface,
                                       @NonNull DisplayMetrics displayMetrics, boolean isVibrationEnabled, @NonNull Callback callback) {
@@ -76,7 +70,7 @@ public class AlarmMathMissionController {
             return;
         }
 
-        final MissionState state = new MissionState(mathHardnessLevel, Math.max(1, problemCount), random);
+        final MathMission mission = new MathMission(mathHardnessLevel, problemCount, random);
 
         final AlarmMathChallengeDialogBinding binding = AlarmMathChallengeDialogBinding.inflate(LayoutInflater.from(mContext));
 
@@ -92,8 +86,8 @@ public class AlarmMathMissionController {
         binding.mathChallengeError.setVisibility(INVISIBLE);
         binding.mathChallengeError.setTypeface(mGeneralBoldTypeface, Typeface.BOLD);
 
-        final Keypad keypad = buildKeypad(binding, state);
-        showCurrentProblem(binding, state, keypad);
+        final Keypad keypad = buildKeypad(binding, mission);
+        showCurrentProblem(binding, mission, keypad);
 
         mCurrentDialog = CustomDialog.create(
             mContext,
@@ -116,12 +110,12 @@ public class AlarmMathMissionController {
                 alertDialog.setCanceledOnTouchOutside(false);
 
                 alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v ->
-                    validateAnswer(binding, state, keypad, alertDialog, action));
+                    validateAnswer(binding, mission, keypad, alertDialog, action));
 
                 // Replace the current problem without losing the problems already solved.
                 alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-                    state.newProblem();
-                    showCurrentProblem(binding, state, keypad);
+                    mission.skipProblem();
+                    showCurrentProblem(binding, mission, keypad);
                 });
             },
             CustomDialog.SoftInputMode.NONE
@@ -142,7 +136,7 @@ public class AlarmMathMissionController {
     }
 
     @NonNull
-    private Keypad buildKeypad(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state) {
+    private Keypad buildKeypad(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MathMission mission) {
         final GridLayout keypadLayout = binding.mathChallengeKeypad;
         keypadLayout.removeAllViews();
 
@@ -180,8 +174,8 @@ public class AlarmMathMissionController {
                     button.setContentDescription(mContext.getString(R.string.math_challenge_clear_description));
                     button.setOnClickListener(v -> {
                         Utils.performHapticFeedback(v, mIsVibrationEnabled, HapticFeedbackConstants.CLOCK_TICK);
-                        state.answer.setLength(0);
-                        onAnswerChanged(binding, state, keypad);
+                        mission.clearAnswer();
+                        onAnswerChanged(binding, mission, keypad);
                     });
                 }
 
@@ -195,10 +189,8 @@ public class AlarmMathMissionController {
                     button.setContentDescription(mContext.getString(R.string.math_challenge_delete_digit));
                     button.setOnClickListener(v -> {
                         Utils.performHapticFeedback(v, mIsVibrationEnabled, HapticFeedbackConstants.CLOCK_TICK);
-                        if (state.answer.length() > 0) {
-                            state.answer.setLength(state.answer.length() - 1);
-                            onAnswerChanged(binding, state, keypad);
-                        }
+                        mission.deleteDigit();
+                        onAnswerChanged(binding, mission, keypad);
                     });
                 }
 
@@ -206,14 +198,8 @@ public class AlarmMathMissionController {
                     button.setText(key);
                     button.setOnClickListener(v -> {
                         Utils.performHapticFeedback(v, mIsVibrationEnabled, HapticFeedbackConstants.CLOCK_TICK);
-                        if (state.answer.length() < MAX_ANSWER_LENGTH) {
-                            // Avoid leading zeros, e.g. "007".
-                            if (state.answer.length() == 1 && state.answer.charAt(0) == '0') {
-                                state.answer.setLength(0);
-                            }
-                            state.answer.append(key);
-                            onAnswerChanged(binding, state, keypad);
-                        }
+                        mission.typeDigit(key.charAt(0));
+                        onAnswerChanged(binding, mission, keypad);
                     });
                 }
             }
@@ -235,58 +221,50 @@ public class AlarmMathMissionController {
         return keypad;
     }
 
-    private void showCurrentProblem(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state,
+    private void showCurrentProblem(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MathMission mission,
                                     @NonNull Keypad keypad) {
 
-        binding.mathChallengeText.setText(mContext.getString(R.string.math_challenge_expression, state.challenge.expression()));
+        binding.mathChallengeText.setText(mContext.getString(R.string.math_challenge_expression,
+            mission.getChallenge().expression()));
 
-        if (state.requiredCount > 1) {
+        if (mission.getRequiredCount() > 1) {
             binding.mathChallengeProgress.setVisibility(VISIBLE);
             binding.mathChallengeProgress.setText(mContext.getString(R.string.math_challenge_progress,
-                state.solvedCount + 1, state.requiredCount));
+                mission.getProblemNumber(), mission.getRequiredCount()));
         } else {
             binding.mathChallengeProgress.setVisibility(GONE);
         }
 
-        state.answer.setLength(0);
-        onAnswerChanged(binding, state, keypad);
+        onAnswerChanged(binding, mission, keypad);
     }
 
-    private void onAnswerChanged(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state,
+    private void onAnswerChanged(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MathMission mission,
                                  @NonNull Keypad keypad) {
 
-        binding.answerDisplay.setText(state.answer);
+        binding.answerDisplay.setText(mission.getAnswer());
         binding.mathChallengeError.setVisibility(INVISIBLE);
-        keypad.updateEnabledState(state.answer.length() > 0);
+        keypad.updateEnabledState(mission.hasAnswer());
     }
 
-    private void validateAnswer(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MissionState state,
+    private void validateAnswer(@NonNull AlarmMathChallengeDialogBinding binding, @NonNull MathMission mission,
                                 @NonNull Keypad keypad, @NonNull AlertDialog dialog, int action) {
 
-        if (state.answer.length() == 0) {
-            return;
+        switch (mission.submit()) {
+            case EMPTY -> {
+            }
+            case WRONG -> {
+                binding.mathChallengeError.setVisibility(VISIBLE);
+                Utils.performHapticFeedback(binding.answerDisplay, mIsVibrationEnabled, HapticFeedbackConstants.LONG_PRESS);
+                binding.answerDisplay.setText(mission.getAnswer());
+                keypad.updateEnabledState(false);
+            }
+            case NEXT_PROBLEM -> showCurrentProblem(binding, mission, keypad);
+            case SOLVED -> {
+                dialog.dismiss();
+                mCurrentDialog = null;
+                mCallback.onMissionResolved(action);
+            }
         }
-
-        if (!state.challenge.matches(state.answer.toString())) {
-            binding.mathChallengeError.setVisibility(VISIBLE);
-            Utils.performHapticFeedback(binding.answerDisplay, mIsVibrationEnabled, HapticFeedbackConstants.LONG_PRESS);
-            state.answer.setLength(0);
-            binding.answerDisplay.setText(state.answer);
-            keypad.updateEnabledState(false);
-            return;
-        }
-
-        state.solvedCount++;
-
-        if (state.solvedCount < state.requiredCount) {
-            state.newProblem();
-            showCurrentProblem(binding, state, keypad);
-            return;
-        }
-
-        dialog.dismiss();
-        mCurrentDialog = null;
-        mCallback.onMissionResolved(action);
     }
 
     /**
@@ -304,32 +282,6 @@ public class AlarmMathMissionController {
             if (deleteButton != null) {
                 deleteButton.setEnabled(hasAnswer);
             }
-        }
-    }
-
-    /**
-     * Progress of the user through the current mission.
-     */
-    private static final class MissionState {
-        final String hardness;
-        final Random random;
-        final int requiredCount;
-        final StringBuilder answer = new StringBuilder();
-        AlarmMathChallenge challenge;
-        int solvedCount;
-
-        MissionState(@NonNull String hardness, int requiredCount, @NonNull Random random) {
-            this.hardness = hardness;
-            this.random = random;
-            this.requiredCount = requiredCount;
-            newProblem();
-        }
-
-        void newProblem() {
-            final AlarmMathChallenge previous = challenge;
-            do {
-                challenge = AlarmMathChallenge.create(hardness, random);
-            } while (previous != null && previous.expression().equals(challenge.expression()));
         }
     }
 
