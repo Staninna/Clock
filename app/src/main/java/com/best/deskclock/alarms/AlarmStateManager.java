@@ -170,26 +170,22 @@ public final class AlarmStateManager extends BroadcastReceiver {
     private static void performUpdateNextAlarm(@NonNull Context context) {
         Context storageContext = Utils.getSafeStorageContext(context);
 
-        // The alarm database lives in device-protected storage, so the next alarm can be looked up
-        // and registered with the AlarmManager even before the first unlock after a reboot
-        // (direct boot mode). Doing so lets the system show the alarm icon and treat the upcoming
-        // alarm as an alarm clock (highest priority wake-up) while the device is still locked.
         final AlarmInstance nextAlarm = AlarmInstance.getNextFiringAlarm(context);
+
+        if (nextAlarm != null) {
+            setPowerOffAlarm(context, nextAlarm);
+        }
 
         updateNextAlarmInAlarmManager(context, nextAlarm);
 
         HomeAssistant.onNextAlarmChanged(context, nextAlarm);
 
-        // Important: Do not proceed further if the user is locked (direct boot mode).
+        // Important: Do not proceed if the user is locked (direct boot mode).
         // Updating widgets may fail because credential-protected storage
         // is not yet accessible, and AppWidgetManager.getAppWidgetIds() will throw an exception.
         // Fix https://github.com/BlackyHawky/Clock/issues/369#issuecomment-3344303993
         if (!DeviceUtils.isUserUnlocked(storageContext)) {
             return;
-        }
-
-        if (nextAlarm != null) {
-            setPowerOffAlarm(context, nextAlarm);
         }
 
         if (SdkUtils.isAtLeastAndroid7()) {

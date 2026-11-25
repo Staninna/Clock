@@ -9,8 +9,8 @@ android {
         applicationId = "com.best.deskclock"
         minSdk = 23
         targetSdk = 37
-        versionCode = 2038
-        versionName = '2.35'
+        versionCode = 2039
+        versionName = '2.36'
         // Client ID of the Spotify app used to log in to Spotify (optional, see SpotifyAccount).
         // Set it with -PspotifyClientId=... or the SPOTIFY_CLIENT_ID environment variable.
         def spotifyClientId = providers.gradleProperty("spotifyClientId")
@@ -46,7 +46,7 @@ android {
         }
     }
 
-    def commitNumber = 31
+    def commitNumber = 6
 
     def buildCommit = providers.exec {
         commandLine('git', 'rev-parse', '--short=7', 'HEAD')

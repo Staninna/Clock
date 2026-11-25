@@ -30,6 +30,8 @@ public class RingtoneViewHolder extends RecyclerView.ViewHolder {
     private final Drawable mSilentIcon;
     private final Drawable mRandomIcon;
     private final Drawable mSpotifyIcon;
+    private final Drawable mPlayIcon;
+    private final Drawable mStopIcon;
 
     public RingtoneViewHolder(@NonNull View itemView, @NonNull RingtoneAdapter adapter, @NonNull UiConfig.Fonts fonts) {
         super(itemView);
@@ -45,6 +47,8 @@ public class RingtoneViewHolder extends RecyclerView.ViewHolder {
         mSpotifyIcon = AppCompatResources.getDrawable(context, R.drawable.ic_queue_music);
         mErrorIcon = adapter.getErrorIcon();
         mSilentIcon = adapter.getSilentIcon();
+        mPlayIcon = adapter.getPlayIcon();
+        mStopIcon = adapter.getStopIcon();
 
         mBinding.ringtoneName.setTypeface(fonts.general());
         // Allow text scrolling (all other attributes are indicated in the "ringtone_item_sound.xml" file)
@@ -68,6 +72,19 @@ public class RingtoneViewHolder extends RecyclerView.ViewHolder {
             mBinding.deleteRingtoneButton.setOnClickListener(v -> listener.onRemoveRingtoneClick(itemHolder));
         } else {
             mBinding.deleteRingtoneButton.setVisibility(View.GONE);
+        }
+
+        // Spotify sounds have no preview: they only play from the Spotify app when the alarm rings.
+        final boolean canPreview = !itemHolder.isSilent()
+            && getItemViewType() != RingtoneAdapter.VIEW_TYPE_SPOTIFY_SOUND;
+        if (canPreview && isSelected && !mAdapter.isAutoPlayEnabled()) {
+            mBinding.playRingtoneButton.setImageDrawable(itemHolder.isPlaying() ? mStopIcon : mPlayIcon);
+            mBinding.playRingtoneButton.setAlpha(alpha);
+            mBinding.playRingtoneButton.setVisibility(View.VISIBLE);
+            mBinding.playRingtoneButton.setOnClickListener(v -> listener.onPlayRingtoneClick(itemHolder));
+        } else {
+            mBinding.playRingtoneButton.setVisibility(View.GONE);
+            mBinding.playRingtoneButton.setOnClickListener(null);
         }
 
         mBinding.soundImageSelected.setVisibility(isSelected ? View.VISIBLE : View.GONE);

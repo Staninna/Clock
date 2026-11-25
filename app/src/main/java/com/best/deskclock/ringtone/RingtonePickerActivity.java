@@ -155,6 +155,7 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
      */
     private int mTitleResourceId;
 
+    private boolean mIsAutoPlayEnabled;
     private boolean mIsVibrationsEnabled;
     private boolean mIsAdvancedAudioPlaybackEnabled;
     private boolean mReturnResultOnly;
@@ -284,6 +285,7 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
         mRingtonePickerBinding = RingtonePickerBinding.inflate(getLayoutInflater(), mBaseBinding.contentFrame);
         mIsVibrationsEnabled = SettingsDAO.isVibrationsEnabled(getPrefs());
         mIsAdvancedAudioPlaybackEnabled = SettingsDAO.isAdvancedAudioPlaybackEnabled(getPrefs());
+        mIsAutoPlayEnabled = SettingsDAO.isAutoPlayEnabled(getPrefs());
         mFragmentManager = getSupportFragmentManager();
 
         setVolumeControlStream(AudioManager.STREAM_ALARM);
@@ -372,9 +374,10 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
 
         mDialogProgressBinding.dialogProgressText.setTypeface(getGeneralTypeface());
 
-        mRingtoneAdapter = new RingtoneAdapter(this, getFontsConfig(), getScreenConfig(), isAmoledDarkMode,
+        mRingtoneAdapter = new RingtoneAdapter(this, getFontsConfig(), getScreenConfig(), isAmoledDarkMode, mIsAutoPlayEnabled,
             new RingtoneAdapter.OnRingtoneClickListener() {
 
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onRingtoneClick(@NonNull RingtoneHolder newSelection) {
                 final RingtoneHolder oldSelection = getSelectedRingtoneHolder();
@@ -392,6 +395,32 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
                     }
                 } else {
                     stopPlayingRingtone(oldSelection, true);
+
+                    if (mIsAutoPlayEnabled) {
+                        startPlayingRingtone(newSelection);
+                    } else {
+                        newSelection.setSelected(true);
+                        mSelectedRingtoneUri = newSelection.getUri();
+
+                        int position = findPositionByHolder(newSelection);
+                        if (position != -1) {
+                            mRingtoneAdapter.notifyItemChanged(position);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onPlayRingtoneClick(@NonNull RingtoneHolder newSelection) {
+                if (newSelection.isPlaying()) {
+                    stopPlayingRingtone(newSelection, false);
+                } else {
+                    final RingtoneHolder oldSelection = getSelectedRingtoneHolder();
+
+                    if (oldSelection != newSelection) {
+                        stopPlayingRingtone(oldSelection, true);
+                    }
+
                     startPlayingRingtone(newSelection);
                 }
             }
@@ -416,6 +445,19 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
             public void onBrowseSpotifyClick() {
                 stopPlayingRingtone(getSelectedRingtoneHolder(), false);
                 SpotifyBrowseDialogFragment.show(mFragmentManager);
+            }
+
+            @Override
+            public void onAutoPlayToggled(boolean isEnabled) {
+                mIsAutoPlayEnabled = isEnabled;
+
+                SettingsDAO.setAutoPlayEnabled(getPrefs(), isEnabled);
+
+                mRingtoneAdapter.setAutoPlayEnabled(isEnabled);
+
+                if (!isEnabled && mIsPlaying) {
+                    stopPlayingRingtone(getSelectedRingtoneHolder(), false);
+                }
             }
         });
 
@@ -500,7 +542,7 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
     @Override
     public Loader<List<RingtoneAdapter.RingtoneItem>> onCreateLoader(int id, @Nullable Bundle args) {
         return new RingtoneLoader(getApplicationContext(), mDataModel, mDefaultRingtoneUri, mDefaultRingtoneTitle,
-            mAllowSpotify);
+            mAllowSpotify, mIsAutoPlayEnabled);
     }
 
     @Override
@@ -803,7 +845,8 @@ public class RingtonePickerActivity extends CollapsingToolbarBaseActivity
 
                 // When the loader completes, it must play the new ringtone.
                 mSelectedRingtoneUri = mDataModel.customRingtoneToAdd(uri, title);
-                mIsPlaying = true;
+
+                mIsPlaying = mIsAutoPlayEnabled;
 
                 // Reload the data to reflect the change in the UI.
                 LoaderManager.getInstance(this).restartLoader(0, null, RingtonePickerActivity.this);

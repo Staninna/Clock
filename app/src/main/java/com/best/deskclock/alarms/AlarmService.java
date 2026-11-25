@@ -172,6 +172,9 @@ public class AlarmService extends Service {
 
     private final Queue<Long> mPendingAlarmIds = new LinkedList<>();
     private AlarmInstance mCurrentAlarm = null;
+    // Cover screen launch still waiting for the hinge angle or display state, null if none.
+    @Nullable
+    private CoverScreenAlarmLauncher.PendingLaunch mCoverScreenLaunch;
 
     private final SharedPreferences.OnSharedPreferenceChangeListener mPrefListener =
         (sharedPreferences, key) -> {
@@ -595,6 +598,8 @@ public class AlarmService extends Service {
             SpotifyAlarmPlayer.stop();
         }
 
+        cancelCoverScreenLaunch();
+
         stopFlash();
 
         if (mCameraManager != null && mTorchCallback != null) {
@@ -605,6 +610,14 @@ public class AlarmService extends Service {
             unregisterReceiver(mActionsReceiver);
             mIsRegistered = false;
         }
+    }
+
+    /**
+     * @return {@code true} if the given instance is not the alarm ringing now; {@code false} otherwise.
+     * Used by the delayed cover screen launch. Main thread only.
+     */
+    boolean isNotFiring(long instanceId) {
+        return mCurrentAlarm == null || mCurrentAlarm.mId != instanceId;
     }
 
     private void startAlarm(@NonNull AlarmInstance instance) {
@@ -625,11 +638,16 @@ public class AlarmService extends Service {
         AlarmAlertWakeLock.acquireCpuWakeLock(this);
 
         mCurrentAlarm = instance;
+        // A snoozed alarm rings again with the same id, so let its alarm screens handle it again.
+        AlarmActivity.onInstanceFired(instance.mId);
 
         disableDNDIfNeeded(this, instance);
 
         AlarmNotifications.showAlarmNotification(
             this, mCurrentAlarm, SettingsDAO.getLanguageCode(mPrefs), SettingsDAO.getGlobalIntentId(mPrefs));
+
+        // Experimental: open AlarmActivity on the cover screen of a folded flip phone.
+        mCoverScreenLaunch = CoverScreenAlarmLauncher.launchIfFolded(this, mCurrentAlarm);
 
         RingtonePlayer.Config playerConfig = new RingtonePlayer.Config(
             SettingsDAO.isAutoRoutingToExternalAudioDevice(mPrefs),
@@ -730,6 +748,8 @@ public class AlarmService extends Service {
     }
 
     private void cleanupAndStop() {
+        cancelCoverScreenLaunch();
+
         stopFlash();
 
         stopAlarmKlaxon();
@@ -743,6 +763,13 @@ public class AlarmService extends Service {
         mCurrentAlarm = null;
         detachListeners();
         AlarmAlertWakeLock.releaseCpuLock();
+    }
+
+    private void cancelCoverScreenLaunch() {
+        if (mCoverScreenLaunch != null) {
+            mCoverScreenLaunch.cancel();
+            mCoverScreenLaunch = null;
+        }
     }
 
     private void stopAlarmKlaxon() {

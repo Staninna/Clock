@@ -154,6 +154,7 @@
     <string name="C153" msgid="7506204460601953711">K<xliff:g id="separator">=</xliff:g>昆士兰<xliff:g id="timezone">|Australia/Queensland</xliff:g></string>
     <string name="C154" msgid="1193262944948312063">X<xliff:g id="separator">=</xliff:g>悉尼<xliff:g id="timezone">|Australia/Sydney</xliff:g></string>
     <string name="C155" msgid="7079072802229033042">W<xliff:g id="separator">=</xliff:g>维多利亚<xliff:g id="timezone">|Australia/Victoria</xliff:g></string>
+    <string name="C156">P<xliff:g id="separator">=</xliff:g>Palma (Balearic Islands)<xliff:g id="timezone">|Europe/Madrid</xliff:g></string>
     <string name="C157" msgid="2861486997803753970">S<xliff:g id="separator">=</xliff:g>萨斯喀彻温<xliff:g id="timezone">|Canada/Saskatchewan</xliff:g></string>
     <string name="C158" msgid="6882933026191056506">A<xliff:g id="separator">=</xliff:g>安加罗阿<xliff:g id="timezone">|Chile/EasterIsland</xliff:g></string>
     <string name="C159" msgid="4128429767051043903">A<xliff:g id="separator">=</xliff:g>阿姆斯特丹<xliff:g id="timezone">|Europe/Amsterdam</xliff:g></string>
@@ -355,6 +356,6 @@
     <string name="C359">Y<xliff:g id="separator">=</xliff:g>尤克拉<xliff:g id="timezone">|Australia/Eucla</xliff:g></string>
     <string name="C360">H<xliff:g id="separator">=</xliff:g>豪勋爵岛<xliff:g id="timezone">|Australia/Lord_Howe</xliff:g></string>
     <string name="C361">C<xliff:g id="separator">=</xliff:g>查塔姆群岛<xliff:g id="timezone">|Pacific/Chatham</xliff:g></string>
-    <string name="C362">A<xliff:g id="separator">=</xliff:g>Adak<xliff:g id="timezone">|America/Adak</xliff:g></string>
-    <string name="C363">G<xliff:g id="separator">=</xliff:g>Gambier Islands<xliff:g id="timezone">|Pacific/Gambier</xliff:g></string>
+    <string name="C362">A<xliff:g id="separator">=</xliff:g>埃达克<xliff:g id="timezone">|America/Adak</xliff:g></string>
+    <string name="C363">G<xliff:g id="separator">=</xliff:g>甘比尔群岛<xliff:g id="timezone">|Pacific/Gambier</xliff:g></string>
 </resources>

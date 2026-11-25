@@ -20,6 +20,7 @@ import static com.best.deskclock.settings.PreferencesDefaultValues.TAB_ANIMATION
 import static com.best.deskclock.settings.PreferencesDefaultValues.TAB_ANIMATION_GATE;
 import static com.best.deskclock.settings.PreferencesDefaultValues.TAB_ANIMATION_ZOOM_OUT;
 import static com.best.deskclock.settings.PreferencesDefaultValues.TAB_TITLE_VISIBILITY_NEVER;
+import static com.best.deskclock.settings.PreferencesDefaultValues.VISIBLE_TAB_ALARM;
 import static com.best.deskclock.settings.PreferencesKeys.*;
 import static com.best.deskclock.utils.AnimatorUtils.getScaleAnimator;
 import static com.best.deskclock.utils.NotificationUtils.EXTRA_UPDATE_ALARM_NOTIFICATIONS;
@@ -69,7 +70,6 @@ import com.best.deskclock.data.OnSilentSettingsListener;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.databinding.DeskClockBinding;
 import com.best.deskclock.events.Events;
-import com.best.deskclock.provider.Alarm;
 import com.best.deskclock.settings.PermissionsManagementActivity;
 import com.best.deskclock.settings.SettingsActivity;
 import com.best.deskclock.setup.FirstLaunch;
@@ -104,14 +104,18 @@ import com.google.android.material.color.MaterialColors;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The main activity of the application which displays 4 different tabs contains alarms, world
  * clocks, timers and stopwatch.
  */
 public class DeskClock extends BaseActivity implements FabContainer {
+
+    public static final String ACTION_SHOW_ALARMS_FROM_NEXT_ALARM_WIDGET = "com.best.deskclock.action.SHOW_ALARMS_FROM_NEXT_ALARM_WIDGET";
 
     private DeskClockBinding mBinding;
 
@@ -334,7 +338,7 @@ public class DeskClock extends BaseActivity implements FabContainer {
 
         refreshTabsVisibility(oldTab, tabsChanged);
 
-        showTabFromNotifications();
+        showTabFromIntent();
 
         updateKeepScreenOn();
 
@@ -477,11 +481,8 @@ public class DeskClock extends BaseActivity implements FabContainer {
         Context appContext = getApplicationContext();
 
         AppExecutors.getDiskIO().execute(() -> {
-            List<Alarm> enabledAlarms = Alarm.getEnabledAlarms(appContext);
-            if (!enabledAlarms.isEmpty()) {
-                LogUtils.i("Debug deployment: Restoring enabled alarms.");
-                AlarmStateManager.fixAlarmInstances(appContext, getPrefs());
-            }
+            LogUtils.i("Debug deployment: fixAlarmInstances called.");
+            AlarmStateManager.fixAlarmInstances(appContext, getPrefs());
         });
 
         AppExecutors.getMainThread().post(() -> {
@@ -836,6 +837,12 @@ public class DeskClock extends BaseActivity implements FabContainer {
      * text visibility, font update, etc.
      */
     private void configureBottomNavigationView() {
+        updateBottomNavigationVisibility();
+
+        if (mBinding.deskClockBottomMenu.getVisibility() == View.GONE) {
+            return;
+        }
+
         final int primaryColor = MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary, Color.BLACK);
         final int surfaceColor = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface, Color.BLACK);
         final int onBackgroundColor = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnBackground, Color.BLACK);
@@ -895,6 +902,15 @@ public class DeskClock extends BaseActivity implements FabContainer {
                 new int[][]{{android.R.attr.state_selected}, {}},
                 new int[]{primaryColor, onBackgroundColor}));
         }
+    }
+
+    /**
+     * Displays the bottom navigation bar only if there is strictly more than one tab.
+     */
+    private void updateBottomNavigationVisibility() {
+        boolean isBottomNavDisplayed = getUiDataModel().getTabCount() > 1;
+
+        mBinding.deskClockBottomMenu.setVisibility(isBottomNavDisplayed ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -958,13 +974,38 @@ public class DeskClock extends BaseActivity implements FabContainer {
     /**
      * Displays the right tab if the application has been closed and then reopened from the notification.
      */
-    private void showTabFromNotifications() {
+    private void showTabFromIntent() {
         final Intent intent = getIntent();
         if (intent != null) {
             final String action = intent.getAction();
             if (action != null) {
                 int label = intent.getIntExtra(Events.EXTRA_EVENT_LABEL, R.string.label_intent);
                 switch (action) {
+                    case ACTION_SHOW_ALARMS_FROM_NEXT_ALARM_WIDGET -> {
+                        // If the Alarm tab is hidden in the settings, re-enable it.
+                        if (!getUiDataModel().isTabVisible(UiDataModel.Tab.ALARMS)) {
+                            Set<String> visibleTabs = SettingsDAO.getVisibleTabs(getPrefs());
+                            Set<String> newTabs = new HashSet<>(visibleTabs);
+
+                            newTabs.add(VISIBLE_TAB_ALARM);
+
+                            getPrefs().edit().putStringSet(KEY_VISIBLE_TABS, newTabs).apply();
+
+                            if (getUiDataModel().updateActiveTabs()) {
+                                mFragmentTabPagerAdapter.clearCache();
+                                mFragmentTabPagerAdapter.notifyDataSetChanged();
+                                mBinding.deskClockPager.setPageTransformer(false, null);
+                                updatePageTransformer();
+                                refreshTabsVisibility(getUiDataModel().getSelectedTab(), true);
+                            }
+                        }
+
+                        // Open the app to the Alarm tab.
+                        getUiDataModel().setSelectedTab(UiDataModel.Tab.ALARMS);
+
+                        intent.setAction(null);
+                    }
+
                     case TimerService.ACTION_SHOW_TIMER -> {
                         Events.sendTimerEvent(R.string.action_show, label);
                         if (getUiDataModel().isTabVisible(UiDataModel.Tab.TIMERS)) {
@@ -973,6 +1014,7 @@ public class DeskClock extends BaseActivity implements FabContainer {
                         // Consume the action to prevent it from being reused
                         intent.setAction(null);
                     }
+
                     case StopwatchService.ACTION_SHOW_STOPWATCH -> {
                         Events.sendStopwatchEvent(R.string.action_show, label);
                         if (getUiDataModel().isTabVisible(UiDataModel.Tab.STOPWATCH)) {
@@ -1024,9 +1066,17 @@ public class DeskClock extends BaseActivity implements FabContainer {
 
         final boolean finalMenuChanged = menuChanged;
 
+        if (tabsChanged) {
+            updateBottomNavigationVisibility();
+        }
+
         // Indicate in the menu which tab is currently active to force the Material indicator to redraw
         // when the tabs visibility has been changed
         mBinding.deskClockBottomMenu.post(() -> {
+            if (mBinding.deskClockBottomMenu.getVisibility() == View.GONE) {
+                return;
+            }
+
             UiDataModel.Tab currentTab = getUiDataModel().getSelectedTab();
             int currentItemId = switch (currentTab) {
                 case ALARMS -> R.id.page_alarm;

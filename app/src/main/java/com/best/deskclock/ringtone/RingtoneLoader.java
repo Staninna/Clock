@@ -42,9 +42,10 @@ public class RingtoneLoader extends AsyncTaskLoader<List<RingtoneAdapter.Rington
     private final String mDefaultRingtoneTitle;
     private final boolean mIncludeSpotify;
     private List<CustomRingtone> mCustomRingtones;
+    public boolean mIsAutoPlayEnabled;
 
     RingtoneLoader(@NonNull Context context, @NonNull DataModel dataModel, @NonNull Uri defaultRingtoneUri,
-                   @NonNull String defaultRingtoneTitle, boolean includeSpotify) {
+                   @NonNull String defaultRingtoneTitle, boolean includeSpotify, boolean isAutoPlayEnabled) {
 
         super(context);
 
@@ -52,6 +53,7 @@ public class RingtoneLoader extends AsyncTaskLoader<List<RingtoneAdapter.Rington
         mIncludeSpotify = includeSpotify;
         mDefaultRingtoneUri = defaultRingtoneUri;
         mDefaultRingtoneTitle = defaultRingtoneTitle;
+        mIsAutoPlayEnabled = isAutoPlayEnabled;
     }
 
     @Override
@@ -77,6 +79,9 @@ public class RingtoneLoader extends AsyncTaskLoader<List<RingtoneAdapter.Rington
             final int itemCount = systemRingtoneCount + mCustomRingtones.size() + 3;
 
             final List<RingtoneAdapter.RingtoneItem> itemHolders = new ArrayList<>(itemCount);
+
+            // Add an item holder to enable/disable autoplay when a ringtone is selected.
+            itemHolders.add(new AutoplaySwitchHolder(mIsAutoPlayEnabled));
 
             // Add the item holder for the Music heading.
             itemHolders.add(new HeaderHolder(R.string.your_sounds));

@@ -101,6 +101,10 @@
     <string name="category_error">Category already created</string>
     <!-- Description of the "Add category" button -->
     <string name="add_category_description">Add category</string>
+    <!-- Description of the "Previous category" button -->
+    <string name="previous_category_description">Previous category</string>
+    <!-- Description of the "Next category" button -->
+    <string name="next_category_description">Next category</string>
     <!-- Hint displayed in the time zone search bar -->
     <string name="time_zone_search_hint">Search for a time zone</string>
 
@@ -629,6 +633,8 @@
     <string name="default_alarm_ringtone_title">Default alarm sound</string>
     <!-- Label for adding a new ringtone sound [CHAR LIMIT=30]-->
     <string name="add_new_sound">Add new</string>
+    <!-- Title to enable/disable autoplay when a ringtone is selected in the ringtone picker -->
+    <string name="autoplay_ringtone_title">Autoplay when selected</string>
     <!-- Tip for the "+" button in the ringtone picker -->
     <string name="button_tip_title">Long press the \"+\" button to add a folder</string>
     <!-- Label for removing a ringtone sound [CHAR LIMIT=30] -->
@@ -890,6 +896,8 @@
     <string name="delete_alarms_with_category_summary">If disabled, alarms will be moved to the default category</string>
     <!-- Setting title to switch to the new category once created -->
     <string name="switch_to_new_category_title">Switch to the new category once created</string>
+    <!-- Setting title to display floating action buttons to navigate between categories -->
+    <string name="display_category_navigation_buttons_title">Display floating action buttons to navigate between categories</string>
     <!-- Setting title for customizing the display -->
     <string name="display_settings_title">Display settings</string>
     <!-- Setting title for changing the sorting order to By name. -->
@@ -1682,6 +1690,10 @@
     <string name="dnd_permission_title">DO NOT DISTURB</string>
     <string name="dnd_dialog_title">Do Not Disturb</string>
     <string name="dnd_dialog_text">This permission allows the app to automatically turn off \"Do Not Disturb\" mode when your alarm goes off.\n\nWe recommend enabling it so you don\'t miss important calls or messages after waking up.</string>
+    <!-- "Display over other apps" permission, used to show alarms on the cover screen of a foldable -->
+    <string name="cover_screen_permission_title">SHOW ALARMS ON THE COVER SCREEN</string>
+    <string name="cover_screen_dialog_title">Show alarms on the cover screen</string>
+    <string name="cover_screen_dialog_text">On some flip phones, the alarm screen does not appear on the cover screen when the phone is closed. You only get a notification.\n\nThe \"Display over other apps\" permission lets the app open the alarm screen on the cover screen when the phone is closed, so you can snooze or dismiss the alarm without opening the phone.\n\nTap this card to open the system settings, then find this app in the list to allow or revoke the permission.</string>
     <!-- Foreground service -->
     <string name="foreground_service_title">Display a foreground notification</string>
     <string name="foreground_service_dialog_message">To prevent your device from aggressively closing the app and missing alarms, this will display a persistent, silent notification.\n\nThis ensures the app stays in memory, though it may slightly increase battery usage.\n\nNote: Enabling this setting is not necessary for most devices. Only enable it if you experience missed alarms.</string>

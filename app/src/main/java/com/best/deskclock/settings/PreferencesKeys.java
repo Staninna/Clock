@@ -116,6 +116,7 @@ public class PreferencesKeys {
     public static final String KEY_SWITCH_TO_NEW_CATEGORY = "key_switch_to_new_category";
     public static final String KEY_DISPLAY_ENABLED_ALARM_BADGE = "key_display_enabled_alarm_badge";
     public static final String KEY_DELETE_ALARMS_WITH_CATEGORY = "key_delete_alarms_with_category";
+    public static final String KEY_DISPLAY_CATEGORY_NAVIGATION_BUTTONS = "key_display_category_navigation_buttons";
     public static final String KEY_ALARM_FEATURES_TO_DISPLAY = "key_alarm_features_to_display";
     public static final String KEY_ENABLE_ALARM_FAB_LONG_PRESS = "key_enable_alarm_fab_long_press";
     public static final String KEY_WEEK_START = "key_week_start";
@@ -278,6 +279,7 @@ public class PreferencesKeys {
     public static final String KEY_FULL_SCREEN_NOTIFICATION_PERMISSION = "key_full_screen_notification_permission";
     public static final String KEY_SHOW_LOCKSCREEN_PERMISSION = "key_show_lockscreen_permission";
     public static final String KEY_DND_PERMISSION = "key_dnd_permission";
+    public static final String KEY_COVER_SCREEN_PERMISSION = "key_cover_screen_permission";
     public static final String KEY_ENABLE_FOREGROUND_SERVICE = "key_enable_foreground_service";
 
     // **************
@@ -375,6 +377,12 @@ public class PreferencesKeys {
     public static final String KEY_NEXT_ALARM_WIDGET_DEFAULT_ALARM_COLOR = "key_next_alarm_widget_default_alarm_color";
     public static final String KEY_NEXT_ALARM_WIDGET_CUSTOM_ALARM_COLOR = "key_next_alarm_widget_custom_alarm_color";
     public static final String KEY_NEXT_ALARM_WIDGET_MAXIMUM_FONT_SIZE = "key_next_alarm_widget_maximum_font_size";
+
+    // *********************
+    // ** RINGTONE PICKER **
+    // *********************
+
+    public static final String KEY_IS_AUTO_PLAY_ENABLED = "key_is_auto_play_enabled";
 
     // ****************
     // ** FILE NAMES **
