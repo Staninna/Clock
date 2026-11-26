@@ -30,12 +30,15 @@ import com.best.deskclock.base.AppExecutors;
 import com.best.deskclock.base.BaseSettingsScreenFragment;
 import com.best.deskclock.data.SettingsDAO;
 import com.best.deskclock.dialogfragment.TimeZoneDialogFragment;
+import com.best.deskclock.settings.custompreference.CustomSliderPreference;
 import com.best.deskclock.settings.custompreference.TimeZonePreference;
 import com.best.deskclock.uicomponents.toast.CustomToast;
 import com.best.deskclock.utils.FileUtils;
 import com.best.deskclock.utils.Utils;
 import com.best.deskclock.utils.WidgetUtils;
 import com.best.deskclock.widgets.DigitalAppWidgetProvider;
+
+import java.util.TimeZone;
 
 public class ClockSettingsFragment extends BaseSettingsScreenFragment
     implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener {
@@ -49,10 +52,11 @@ public class ClockSettingsFragment extends BaseSettingsScreenFragment
     ListPreference mClockDialPref;
     ListPreference mClockDialMaterialPref;
     SwitchPreferenceCompat mDisplayClockSecondsPref;
+    Preference mDigitalClockFontPref;
     ListPreference mClockSecondHandPref;
     SwitchPreferenceCompat mDisplayNextAlarmPref;
-    Preference mDigitalClockFontPref;
     SwitchPreferenceCompat mDisplayTextUppercasePref;
+    CustomSliderPreference mDateAndNextAlarmSizePref;
     ListPreference mSortCitiesPref;
     SwitchPreferenceCompat mEnableCityFlagPref;
     SwitchPreferenceCompat mEnableCityNotePref;
@@ -138,6 +142,7 @@ public class ClockSettingsFragment extends BaseSettingsScreenFragment
         mDisplayNextAlarmPref = findPreference(KEY_DISPLAY_NEXT_ALARM);
         mDigitalClockFontPref = findPreference(KEY_DIGITAL_CLOCK_FONT);
         mDisplayTextUppercasePref = findPreference(KEY_DISPLAY_TEXT_UPPERCASE);
+        mDateAndNextAlarmSizePref = findPreference(KEY_DATE_AND_NEXT_ALARM_SIZE);
         mSortCitiesPref = findPreference(KEY_SORT_CITIES);
         mEnableCityFlagPref = findPreference(KEY_ENABLE_CITY_FLAG);
         mEnableCityNotePref = findPreference(KEY_ENABLE_CITY_NOTE);
@@ -186,8 +191,23 @@ public class ClockSettingsFragment extends BaseSettingsScreenFragment
                 preference.setSummary(preference.getEntries()[index]);
             }
 
-            case KEY_DISPLAY_CLOCK_SECONDS, KEY_DISPLAY_NEXT_ALARM, KEY_DISPLAY_TEXT_UPPERCASE ->
+            case KEY_DISPLAY_CLOCK_SECONDS, KEY_DISPLAY_TEXT_UPPERCASE ->
                 Utils.performHapticFeedback(getView(), isVibrationsEnabled(), HapticFeedbackConstantsCompat.VIRTUAL_KEY);
+
+            case KEY_DISPLAY_NEXT_ALARM -> {
+                Utils.performHapticFeedback(getView(), isVibrationsEnabled(), HapticFeedbackConstantsCompat.VIRTUAL_KEY);
+
+                boolean isNextAlarmDisplayed = (boolean) newValue;
+                mDisplayTextUppercasePref.setTitle(getString(isNextAlarmDisplayed
+                    ? R.string.display_date_and_next_alarm_uppercase_title
+                    : R.string.display_date_uppercase_title)
+                );
+
+                mDateAndNextAlarmSizePref.setTitle(getString(isNextAlarmDisplayed
+                    ? R.string.date_and_next_alarm_size_title
+                    : R.string.date_size_title)
+                );
+            }
 
             case KEY_AUTO_HOME_CLOCK -> {
                 Utils.performHapticFeedback(getView(), isVibrationsEnabled(), HapticFeedbackConstantsCompat.VIRTUAL_KEY);
@@ -251,21 +271,33 @@ public class ClockSettingsFragment extends BaseSettingsScreenFragment
     @Override
     protected boolean isPreferenceVisible(@NonNull Preference pref, @NonNull String key) {
         final boolean isAnalogClock = mClockStylePref.getValue().equals(mAnalogClock);
-        final boolean isMaterialAnalogClock = mClockStylePref.getValue().equals(mMaterialAnalogClock);
         final boolean isDigitalClock = mClockStylePref.getValue().equals(mDigitalClock);
-        final boolean displaySeconds = mDisplayClockSecondsPref.isChecked();
+
+        final long now = System.currentTimeMillis();
+        final TimeZone homeTZ = TimeZone.getTimeZone(mHomeTimeZonePref.getTimeZone());
+        final boolean isHomeTimeZoneDifferent = homeTZ.getOffset(now) != TimeZone.getDefault().getOffset(now);
+        final boolean showHomeClock = mAutoHomeClockPref.isChecked() && isHomeTimeZoneDifferent;
+
+        final int selectedCitiesCount = getDataModel().getSelectedCities().size();
+        final boolean hasDisplayedCities = selectedCitiesCount > 0 || showHomeClock;
 
         return switch (key) {
             case KEY_CLOCK_DIAL -> isAnalogClock;
-            case KEY_CLOCK_DIAL_MATERIAL -> isMaterialAnalogClock;
+            case KEY_CLOCK_DIAL_MATERIAL -> mClockStylePref.getValue().equals(mMaterialAnalogClock);
             case KEY_ANALOG_CLOCK_SIZE -> !isDigitalClock;
-            case KEY_CLOCK_SECOND_HAND -> isAnalogClock && displaySeconds;
-            case KEY_DIGITAL_CLOCK_FONT, KEY_DIGITAL_CLOCK_FONT_SIZE -> isDigitalClock;
+            case KEY_CLOCK_SECOND_HAND -> isAnalogClock && mDisplayClockSecondsPref.isChecked();
+            case KEY_DIGITAL_CLOCK_FONT, KEY_DIGITAL_CLOCK_FONT_SIZE, KEY_CITY_DIGITAL_CLOCK_SIZE -> isDigitalClock;
+            case KEY_CITY_NAME_SIZE, KEY_CITY_TIME_DIFFERENCE_SIZE, KEY_ENABLE_CITY_NOTE -> hasDisplayedCities;
+            case KEY_CITY_NOTE_SIZE -> hasDisplayedCities && mEnableCityNotePref.isChecked();
+            case KEY_CITY_ANALOG_CLOCK_SIZE -> !isDigitalClock && hasDisplayedCities;
+            case KEY_SORT_CITIES -> selectedCitiesCount > 1;
             default -> super.isPreferenceVisible(pref, key);
         };
     }
 
     private void setupPreferences() {
+        boolean isNextAlarmDisplayed = SettingsDAO.isNextAlarmDisplayed(getPrefs());
+
         mClockStylePref.setSummary(mClockStylePref.getEntry());
         mClockStylePref.setOnPreferenceChangeListener(this);
 
@@ -287,13 +319,24 @@ public class ClockSettingsFragment extends BaseSettingsScreenFragment
             : R.string.custom_font_title_variant));
         mDigitalClockFontPref.setOnPreferenceClickListener(this);
 
+        mDisplayTextUppercasePref.setTitle(getString(isNextAlarmDisplayed
+            ? R.string.display_date_and_next_alarm_uppercase_title
+            : R.string.display_date_uppercase_title)
+        );
         mDisplayTextUppercasePref.setOnPreferenceChangeListener(this);
+
+        mDateAndNextAlarmSizePref.setTitle(getString(isNextAlarmDisplayed
+            ? R.string.date_and_next_alarm_size_title
+            : R.string.date_size_title)
+        );
 
         mSortCitiesPref.setSummary(mSortCitiesPref.getEntry());
         mSortCitiesPref.setOnPreferenceChangeListener(this);
 
         mEnableCityFlagPref.setOnPreferenceChangeListener(this);
+
         mEnableCityNotePref.setOnPreferenceChangeListener(this);
+
         mAutoHomeClockPref.setOnPreferenceChangeListener(this);
 
         mHomeTimeZonePref.setEnabled(SettingsDAO.getAutoShowHomeClock(getPrefs()));
@@ -315,6 +358,7 @@ public class ClockSettingsFragment extends BaseSettingsScreenFragment
                     TimeZonePreference pref = findPreference(key);
                     if (pref != null) {
                         pref.setTimeZone(newValue);
+                        invalidatePreferencesVisibility();
                     }
                 }
             });
