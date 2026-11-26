@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-License-Identifier: GPL-3.0-only
+
+    Android 11 and earlier. Keep the excludes in sync with data_extraction_rules.xml.
+-->
+
+<full-backup-content>
+    <exclude domain="device_file" path="log_utils_logs.txt" />
+</full-backup-content>
